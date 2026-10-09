@@ -628,6 +628,7 @@ button.bud:active { background: var(--surface-2); }
     $('demoTag').hidden = !isDemo();
     try {
       const data = isDemo() ? demoData(state.anchor) : await apiGet({ action: 'list', date: state.anchor });
+      if (!data.cycle) throw new Error('後端還是舊版程式。請到 Apps Script「部署 → 管理部署作業 → 編輯 → 版本選新版本 → 部署」');
       Object.assign(state, {
         today: data.today, cycle: data.cycle, prevCycle: data.prevCycle,
         records: data.records || [], prevRecords: data.prevRecords || [], pending: data.pending || [],
@@ -1091,6 +1092,7 @@ button.bud:active { background: var(--surface-2); }
   async function loadAssets() {
     try {
       state.assets = isDemo() ? demoAssetData() : await apiGet({ action: 'assets' });
+      if (!state.assets || !('snapshots' in state.assets)) { state.assets = null; throw new Error('後端還是舊版程式，請重新部署並選「新版本」'); }
     } catch (e) {
       toast('讀取資產失敗：' + e.message);
       return;
