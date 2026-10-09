@@ -75,7 +75,7 @@ header.top {
 }
 header.top .wrap { display: flex; align-items: center; gap: 8px; height: 56px; }
 .month { display: flex; align-items: center; gap: 2px; flex: 1; min-width: 0; }
-.month strong { font-size: 17px; min-width: 88px; text-align: center; white-space: nowrap; }
+.month strong { font-size: 17px; min-width: 88px; padding: 0 8px; text-align: center; white-space: nowrap; }
 .icon-btn {
   width: 44px; height: 44px; border: 0; border-radius: 12px; background: transparent;
   display: grid; place-items: center; color: var(--text-2);
@@ -231,6 +231,9 @@ nav.tabs button[aria-current="page"] { color: var(--accent); font-weight: 600; }
 
 /* 預算 */
 .stats.four { grid-template-columns: 1fr 1fr; }
+.stat-btn { text-align: left; font: inherit; color: inherit; width: 100%; }
+.stat-btn:active { background: var(--surface-2); }
+.stat-btn span { color: var(--accent) !important; }
 .stat small { display: block; font-size: 12px; color: var(--text-3); margin-top: 2px; }
 .block-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
 .block-head h2 { margin: 0; }
@@ -259,7 +262,7 @@ button.bud:active { background: var(--surface-2); }
 .sched div { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 12px; }
 .sched span { display: block; font-size: 12px; color: var(--text-2); }
 .sched b { display: block; font-size: 18px; font-weight: 650; margin-top: 2px; white-space: nowrap; }
-.sched small { white-space: nowrap; }
+.sched small { white-space: normal; }
 .sched small { font-size: 12px; color: var(--text-3); }
 .sched .hot { border-color: var(--warn); background: var(--warn-soft); }
 .sched .hot small { color: var(--warn); font-weight: 600; }
@@ -337,14 +340,14 @@ button.bud:active { background: var(--surface-2); }
   <!-- 總覽 -->
   <section id="view-overview">
     <div class="hero">
-      <div class="label" id="totalLabel">本期支出</div>
+      <div class="label" id="totalLabel">本月支出</div>
       <div class="total num" id="total"><span class="skel" style="display:inline-block;width:180px;height:40px"></span></div>
       <div class="cmp num" id="cmp">&nbsp;</div>
       <div class="stats four">
         <div class="stat"><span>今天還能花</span><b class="num" id="todayLeft">-</b><small id="todayLeftNote">&nbsp;</small></div>
         <div class="stat"><span>今日已花</span><b class="num" id="todayAmt">-</b><small>&nbsp;</small></div>
-        <div class="stat"><span>本期收入</span><b class="num" id="incomeAmt">-</b><small id="incomeNote">&nbsp;</small></div>
-        <div class="stat"><span>本期結餘</span><b class="num" id="balanceAmt">-</b><small>收入－支出－轉存</small></div>
+        <button class="stat stat-btn" id="incomeBtn"><span>本月收入 ›</span><b class="num" id="incomeAmt">-</b><small id="incomeNote">&nbsp;</small></button>
+        <div class="stat"><span>本月結餘</span><b class="num" id="balanceAmt">-</b><small>收入－支出－轉存</small></div>
       </div>
       <button class="pending-banner" id="pendingBanner" hidden>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
@@ -367,7 +370,7 @@ button.bud:active { background: var(--surface-2); }
     </div>
     <div class="block">
       <h2>每日支出</h2>
-      <div class="daily"><svg id="dailySvg" preserveAspectRatio="none" role="img" aria-label="本期每日支出長條圖"></svg><div class="axis num" id="dailyAxis"></div></div>
+      <div class="daily"><svg id="dailySvg" preserveAspectRatio="none" role="img" aria-label="本月每日支出長條圖"></svg><div class="axis num" id="dailyAxis"></div></div>
     </div>
     <div class="block">
       <h2>最近紀錄</h2>
@@ -529,7 +532,7 @@ button.bud:active { background: var(--surface-2); }
     { name: '娛樂', type: '消費', pct: 25, cats: ['娛樂'] },
     { name: '投資', type: '轉存', pct: 30, cats: [] },
   ];
-  const demo = { version: { start: '', salary: 40000, buckets: DEMO_BUCKETS }, transfers: [], records: null };
+  const demo = { version: { start: '', buckets: DEMO_BUCKETS }, transfers: [], records: null, incomes: null };
 
   function demoOff(ymd) {
     const w = new Date(ymd + 'T00:00:00Z').getUTCDay();
@@ -542,12 +545,9 @@ button.bud:active { background: var(--surface-2); }
   }
   function demoCycle(ymd) {
     const y = +ymd.slice(0, 4), m = +ymd.slice(5, 7);
-    const ym = k => { const t = y * 12 + m - 1 + k; return [Math.floor(t / 12), t % 12 + 1]; };
-    const pay = k => { const a = ym(k); return demoSched(a[0], a[1], 10); };
-    let start, next;
-    if (ymd >= pay(0)) { start = pay(0); next = pay(1); } else { start = pay(-1); next = pay(0); }
-    const ps = +start.slice(0, 4) * 12 + +start.slice(5, 7) - 2;
-    return { start, end: addDays(next, -1), nextStart: next, prevStart: demoSched(Math.floor(ps / 12), ps % 12 + 1, 10), days: daysBetween(start, next) };
+    const first = k => { const t = y * 12 + m - 1 + k; return Math.floor(t / 12) + '-' + pad(t % 12 + 1) + '-01'; };
+    const start = first(0), nextStart = first(1);
+    return { start, end: addDays(nextStart, -1), nextStart, prevStart: first(-1), days: daysBetween(start, nextStart), month: start.slice(0, 7) };
   }
   function demoRecords(c, today) {
     const items = [
@@ -568,18 +568,30 @@ button.bud:active { background: var(--surface-2); }
     }
     return recs;
   }
-  function demoBudget(c, version, records, incomes, transfers) {
-    const incomeSum = sum(incomes);
-    const projected = incomeSum <= 0;
-    const base = projected ? version.salary : incomeSum;
+  function demoBudget(c, version, records, prevIncomes, transfers) {
+    const base = sum(prevIncomes);
+    const noBase = base <= 0;
     const owner = {};
     version.buckets.forEach(b => { if (b.type === '消費') b.cats.forEach(x => { owner[x] = b.name; }); });
     return {
-      base, projected, incomeSum,
-      buckets: version.buckets.map(b => ({ name: b.name, type: b.type, pct: b.pct, cats: b.cats, limit: Math.round(base * b.pct / 100),
+      base, noBase, baseMonth: c.prevStart.slice(0, 7),
+      buckets: version.buckets.map(b => ({ name: b.name, type: b.type, pct: b.pct, cats: b.cats, limit: noBase ? null : Math.round(base * b.pct / 100),
         used: b.type === '消費' ? sum(records.filter(r => owner[r.category] === b.name)) : sum(transfers.filter(t => t.bucket === b.name)) })),
       unassigned: { cats: DEFAULT_CATS.filter(x => !owner[x]), used: sum(records.filter(r => !owner[r.category])) },
     };
+  }
+  function demoIncomes(today) {
+    if (demo.incomes) return demo.incomes;
+    const list = [];
+    const t0 = +today.slice(0, 4) * 12 + +today.slice(5, 7) - 1;
+    for (let k = 3; k >= 0; k--) {
+      const t = t0 - k, y = Math.floor(t / 12), m = t % 12 + 1;
+      const pay = demoSched(y, m, 10), bonus = demoSched(y, m, 25);
+      if (pay <= today) list.push({ id: 'demo-s' + k, item: '薪資', amount: 41000 + k * 370, date: pay, note: '', source: '網頁' });
+      if (bonus <= today && k % 2 === 1) list.push({ id: 'demo-b' + k, item: '獎金', amount: 6500, date: bonus, note: '', source: '網頁' });
+    }
+    demo.incomes = list;
+    return list;
   }
   function demoData(anchor) {
     const today = twToday();
@@ -599,10 +611,9 @@ button.bud:active { background: var(--surface-2); }
       }
       records = demo.records;
     }
-    const y = +c.start.slice(0, 4), m = +c.start.slice(5, 7);
-    const bonusDay = demoSched(y, m, 25);
-    const incomes = [{ id: 'demo-i1', item: '薪資', amount: demo.version.salary, date: c.start, source: '自動' }];
-    if (bonusDay <= today && bonusDay <= c.end) incomes.push({ id: 'demo-i2', item: '獎金', amount: 6000, date: bonusDay, source: '手動' });
+    const allInc = demoIncomes(today);
+    const incomes = allInc.filter(x => x.date >= c.start && x.date <= c.end);
+    const prevIncomes = allInc.filter(x => x.date >= prev.start && x.date <= prev.end);
     const transfers = isCurrent ? demo.transfers : [];
     const nextOf = day => { for (let k = 0; k < 3; k++) { const t = (+today.slice(0, 4)) * 12 + +today.slice(5, 7) - 1 + k; const d = demoSched(Math.floor(t / 12), t % 12 + 1, day); if (d >= today) return d; } return ''; };
     const cardDate = (() => { const y0 = +today.slice(0, 4), m0 = +today.slice(5, 7); const d = y0 + '-' + pad(m0) + '-12'; if (d >= today) return d; const t = y0 * 12 + m0; return Math.floor(t / 12) + '-' + pad(t % 12 + 1) + '-12'; })();
@@ -615,7 +626,7 @@ button.bud:active { background: var(--surface-2); }
       prevRecords: demoRecords(prev, today).map(r => ({ date: r.date, amount: r.amount })),
       pending: (isCurrent ? records : demo.records || []).filter(r => r.status === '待補金額' || r.status === '待確認'),
       incomes, transfers,
-      budget: demoBudget(c, demo.version, records, incomes, transfers),
+      budget: demoBudget(c, demo.version, records, prevIncomes, transfers),
       version: demo.version, editableFrom: demoCycle(today).start,
       schedule: { salary: sch(nextOf(10)), bonus: sch(nextOf(25)), card: Object.assign(sch(cardDate), { remind: daysBetween(today, cardDate) <= 3 }) },
       holidayWarning: '', categories: DEFAULT_CATS, payments: DEFAULT_PAYS,
@@ -649,7 +660,7 @@ button.bud:active { background: var(--surface-2); }
   function render() {
     if (!state.cycle) return;
     const c = state.cycle;
-    $('monthLabel').textContent = md(c.start) + ' ～ ' + md(c.end);
+    $('monthLabel').textContent = c.start.slice(0, 4) + ' 年 ' + +c.start.slice(5, 7) + ' 月';
     $('nextM').disabled = c.nextStart > state.today;
     $('nextM').style.opacity = $('nextM').disabled ? .3 : 1;
     renderOverview();
@@ -661,40 +672,43 @@ button.bud:active { background: var(--surface-2); }
     const recs = state.records;
     const total = sum(recs);
     const b = state.budget;
-    $('totalLabel').textContent = c.isCurrent ? '本期支出' : md(c.start) + ' ～ ' + md(c.end) + ' 支出';
+    $('totalLabel').textContent = c.isCurrent ? '本月支出' : +c.start.slice(5, 7) + ' 月支出';
     $('total').textContent = money(total);
 
-    // 與上一期同樣經過天數比較
+    // 與上個月同樣經過天數比較
     const elapsed = c.isCurrent ? daysBetween(c.start, state.today) : c.days - 1;
     const pc = state.prevCycle;
     const prevSame = pc ? sum(state.prevRecords.filter(r => daysBetween(pc.start, r.date) <= elapsed)) : 0;
     if (prevSame > 0) {
       const diff = total - prevSame;
       const pct = Math.round(Math.abs(diff) / prevSame * 100);
-      $('cmp').innerHTML = (c.isCurrent ? '比上期同期 ' : '比上期 ') +
+      $('cmp').innerHTML = (c.isCurrent ? '比上月同期 ' : '比上月 ') +
         '<b class="' + (diff > 0 ? 'up' : 'down') + '">' + (diff > 0 ? '多 ' : '少 ') + money(Math.abs(diff)) + '（' + pct + '%）</b>';
     } else {
-      $('cmp').textContent = '上期沒有資料可比較';
+      $('cmp').textContent = '上個月沒有資料可比較';
     }
 
-    // 今天還能花：消費型預算剩餘總額 ÷ 本期剩餘天數
+    // 今天還能花：消費型預算剩餘總額 ÷ 本月剩餘天數
     const spendB = b ? b.buckets.filter(x => x.type === '消費') : [];
     const leftAll = spendB.reduce((s, x) => s + (x.limit - x.used), 0) - (b ? b.unassigned.used : 0);
-    if (c.isCurrent && c.daysLeft) {
+    if (b && b.noBase) {
+      $('todayLeft').textContent = '-';
+      $('todayLeft').className = 'num';
+      $('todayLeftNote').textContent = '上月沒有收入紀錄';
+    } else if (c.isCurrent && c.daysLeft) {
       const perDay = Math.floor(Math.max(leftAll, 0) / c.daysLeft);
       $('todayLeft').textContent = money(perDay);
       $('todayLeft').className = 'num' + (leftAll < 0 ? ' up' : '');
       $('todayLeftNote').textContent = leftAll < 0 ? '消費預算已超支 ' + money(-leftAll) : '剩 ' + c.daysLeft + ' 天，共 ' + money(leftAll);
     } else {
       $('todayLeft').textContent = '-';
-      $('todayLeftNote').textContent = '過去週期';
+      $('todayLeftNote').textContent = '過去月份';
     }
     $('todayAmt').textContent = c.isCurrent ? money(sum(recs.filter(r => r.date === state.today))) : '-';
     const incomeSum = sum(state.incomes);
     const transferSum = sum(state.transfers);
     $('incomeAmt').textContent = money(incomeSum);
-    const bonus = state.incomes.filter(x => x.item !== '薪資');
-    $('incomeNote').textContent = bonus.length ? '含獎金等 ' + money(sum(bonus)) : '薪資';
+    $('incomeNote').textContent = state.incomes.length ? state.incomes.length + ' 筆，點這裡查看' : (c.isCurrent ? '還沒輸入，點這裡新增' : '沒有紀錄');
     const bal = incomeSum - total - transferSum;
     $('balanceAmt').textContent = (bal < 0 ? '-' : '') + money(Math.abs(bal));
     $('balanceAmt').className = 'num' + (bal < 0 ? ' up' : '');
@@ -720,7 +734,7 @@ button.bud:active { background: var(--surface-2); }
       '<span class="v num">' + money(v) + ' · ' + Math.round(v / total * 100) + '%</span></div>').join('')
       : '<div class="empty"><b>這一期還沒有紀錄</b>對 Gemini 說「新增待辦，晚餐雞腿飯一百二」開始記帳</div>';
 
-    // 每日長條（整個週期）
+    // 每日長條（整個月）
     const n = c.days;
     const perDay = Array.from({ length: n }, (_, i) => { const d = addDays(c.start, i); return sum(recs.filter(r => r.date === d)); });
     const dmax = Math.max(...perDay, 1);
@@ -746,25 +760,31 @@ button.bud:active { background: var(--surface-2); }
     if (!s) { $('sched').innerHTML = ''; return; }
     const cell = (label, x, hot) => {
       if (!x || !x.date) return '<div><span>' + label + '</span><b>-</b></div>';
-      const left = x.daysLeft === 0 ? '今天' : x.daysLeft + ' 天後';
+      const left = x.daysLeft === 0 ? (label === '信用卡繳費' ? '今天' : '今天，記得輸入金額') : x.daysLeft + ' 天後';
       return '<div class="' + (hot ? 'hot' : '') + '"><span>' + label + '</span><b class="num">' + md(x.date) + '</b><small>週' + weekday(x.date) + '・' + left + '</small></div>';
     };
-    $('sched').innerHTML = cell('發薪', s.salary) + cell('獎金', s.bonus) + cell('信用卡繳費', s.card, s.card && s.card.remind);
+    $('sched').innerHTML = cell('發薪', s.salary, s.salary && s.salary.daysLeft === 0) + cell('獎金', s.bonus, s.bonus && s.bonus.daysLeft === 0) + cell('信用卡繳費', s.card, s.card && s.card.remind);
   }
 
   function renderBudget() {
     const b = state.budget;
     if (!b) { $('budget').innerHTML = ''; return; }
     const c = state.cycle;
-    const rows = b.buckets.map((x, i) => {
+    const rows = b.buckets.map(x => {
+      if (b.noBase) {
+        const inner = '<span class="name">' + esc(x.name) + '<small>' + x.pct + '%・' + (x.type === '轉存' ? '轉存' : esc(x.cats.join('、'))) + '</small></span>' +
+          '<span class="fig num">' + money(x.used) + '</span>' +
+          '<span class="sub">' + (x.type === '轉存' ? '已轉存，點這裡記一筆' : '已花') + '</span>';
+        return x.type === '轉存' ? '<button class="bud" data-transfer="' + esc(x.name) + '">' + inner + '</button>' : '<div class="bud">' + inner + '</div>';
+      }
       const ratio = x.limit ? x.used / x.limit : (x.used ? 2 : 0);
       if (x.type === '轉存') {
         const done = x.used >= x.limit;
-        return '<button class="bud' + '" data-transfer="' + esc(x.name) + '">' +
+        return '<button class="bud" data-transfer="' + esc(x.name) + '">' +
           '<span class="name">' + esc(x.name) + '<small>' + x.pct + '%・轉存</small></span>' +
           '<span class="fig num">' + money(x.used) + '<small> / ' + money(x.limit) + '</small></span>' +
           '<span class="track"><span class="fill" style="display:block;width:' + Math.min(ratio * 100, 100).toFixed(1) + '%"></span></span>' +
-          '<span class="sub">' + (done ? '本期目標已達成' : '還差 <b>' + money(x.limit - x.used) + '</b>，點這裡記一筆轉存') + '</span></button>';
+          '<span class="sub">' + (done ? '本月目標已達成' : '還差 <b>' + money(x.limit - x.used) + '</b>，點這裡記一筆轉存') + '</span></button>';
       }
       const left = x.limit - x.used;
       const cls = ratio >= 1 ? ' over' : ratio >= .8 ? ' warn' : '';
@@ -781,17 +801,21 @@ button.bud:active { background: var(--surface-2); }
     }
     $('budget').innerHTML = rows.join('');
     const notes = [];
-    notes.push('預算基數 ' + money(b.base) + (b.projected ? '（本期尚無收入紀錄，以固定薪資預估）' : '（本期收入）'));
+    const bm = +b.baseMonth.slice(5, 7);
+    notes.push(b.noBase ? bm + ' 月沒有收入紀錄，本月只顯示已花金額；輸入 ' + bm + ' 月收入後就會出現額度'
+      : '額度依 ' + bm + ' 月收入 ' + money(b.base) + ' 計算');
     if (state.holidayWarning) notes.push(state.holidayWarning);
     $('budgetNote').textContent = notes.join('。');
-    $('budgetNote').className = 'note-line' + (state.holidayWarning ? ' warn' : '');
+    $('budgetNote').className = 'note-line' + (state.holidayWarning || b.noBase ? ' warn' : '');
     $('budgetEditBtn').hidden = !c.isCurrent;
   }
 
   // ---------- 預算設定面板 ----------
   function openBudgetEditor() {
     const v = state.version;
-    const draft = { salary: v.salary, buckets: v.buckets.map(x => ({ name: x.name, type: x.type, pct: x.pct, cats: x.cats.slice() })) };
+    const draft = { buckets: v.buckets.map(x => ({ name: x.name, type: x.type, pct: x.pct, cats: x.cats.slice() })) };
+    const base = state.budget && !state.budget.noBase ? state.budget.base : 0;
+    const estText = pct => base ? '本月約 ' + money(Math.round(base * (Number(pct) || 0) / 100)) : '';
 
     function owners() {
       const o = {};
@@ -800,7 +824,6 @@ button.bud:active { background: var(--surface-2); }
     }
     function errors() {
       const errs = [];
-      if (!Number.isInteger(draft.salary) || draft.salary <= 0) errs.push('固定薪資需為正整數');
       const names = {};
       draft.buckets.forEach((x, i) => {
         if (!x.name.trim()) errs.push('第 ' + (i + 1) + ' 個類別沒有名稱');
@@ -819,7 +842,6 @@ button.bud:active { background: var(--surface-2); }
     function draw() {
       const o = owners();
       const { errs, total } = errors();
-      const base = draft.salary || 0;
       $('bRows').innerHTML = draft.buckets.map((x, i) => '<div class="bedit" data-i="' + i + '">' +
         '<div class="top">' +
         '<div class="field"><label>名稱</label><input data-k="name" value="' + esc(x.name) + '" maxlength="12"></div>' +
@@ -832,7 +854,7 @@ button.bud:active { background: var(--surface-2); }
             return '<button type="button" class="chip' + (taken ? ' taken' : '') + '" data-cat="' + esc(c) + '" aria-pressed="' + mine + '">' + esc(c) + '</button>';
           }).join('') + '</div>'
           : '<p class="note-line">轉存型：不算消費，另外記錄每次轉出的金額</p>') +
-        '<p class="note-line est">每期約 ' + money(Math.round(base * (Number(x.pct) || 0) / 100)) + '（以固定薪資計，有獎金的期會更多）</p>' +
+        '<p class="note-line est">' + estText(x.pct) + '</p>' +
         '</div>').join('');
       refresh();
     }
@@ -848,21 +870,19 @@ button.bud:active { background: var(--surface-2); }
       $('bRows').querySelectorAll('.bedit').forEach(box => {
         const x = draft.buckets[+box.dataset.i];
         const est = box.querySelector('.est');
-        if (x && est) est.textContent = '每期約 ' + money(Math.round((draft.salary || 0) * (Number(x.pct) || 0) / 100)) + '（以固定薪資計，有獎金的期會更多）';
+        if (x && est) est.textContent = estText(x.pct);
       });
     }
 
     openSheet(
       '<h3 id="sheetTitle">預算設定</h3>' +
-      '<p class="msg" style="margin:4px 0 14px">從本期（' + md(state.editableFrom || state.cycle.start) + ' 起）生效，過去週期維持原本的設定。點分類可以移到別的類別。</p>' +
-      '<div class="field"><label for="bSalary">固定薪資（元／月）</label><input id="bSalary" type="number" inputmode="numeric" min="1" step="1" value="' + draft.salary + '"></div>' +
+      '<p class="msg" style="margin:4px 0 14px">從本月（' + +(state.editableFrom || state.cycle.start).slice(5, 7) + ' 月 1 日起）生效，過去月份維持原本的設定。點分類可以移到別的類別。</p>' +
       '<div id="bRows"></div>' +
       '<button type="button" class="btn ghost" id="bAdd" style="margin-bottom:6px">＋ 新增預算類別</button>' +
       '<div class="sumline" id="bSum"></div>' +
       '<p class="msg err" id="bErr" hidden></p><p class="msg err" id="editErr" hidden></p>' +
       '<div class="actions"><button type="button" class="btn ghost" id="bCancel">取消</button><button type="button" class="btn" id="bSave">儲存</button></div>');
 
-    $('bSalary').oninput = e => { draft.salary = Number(e.target.value); refresh(); };
     $('bRows').oninput = e => {
       const box = e.target.closest('.bedit'); if (!box) return;
       const i = +box.dataset.i, k = e.target.dataset.k;
@@ -892,14 +912,66 @@ button.bud:active { background: var(--surface-2); }
     $('bAdd').onclick = () => { draft.buckets.push({ name: '', type: '轉存', pct: 0, cats: [] }); draw(); };
     $('bCancel').onclick = closeSheet;
     $('bSave').onclick = async () => {
-      const payload = { salary: draft.salary, buckets: draft.buckets.map(x => ({ name: x.name.trim(), type: x.type, pct: Number(x.pct), cats: x.type === '消費' ? x.cats : [] })) };
+      const payload = { buckets: draft.buckets.map(x => ({ name: x.name.trim(), type: x.type, pct: Number(x.pct), cats: x.type === '消費' ? x.cats : [] })) };
       await mutate($('bSave'), '儲存中…', async () => {
         if (!isDemo()) await apiPost(Object.assign({ action: 'saveBudget' }, payload));
-        else { demo.version = { start: state.cycle.start, salary: payload.salary, buckets: payload.buckets }; }
-        toast('預算已更新，本期起生效');
+        else { demo.version = { start: state.cycle.start, buckets: payload.buckets }; }
+        toast('預算已更新，本月起生效');
       });
     };
     draw();
+  }
+
+  // ---------- 收入 ----------
+  const INCOME_ITEMS = ['薪資', '獎金', '其他'];
+  function openIncome(editId) {
+    const c = state.cycle;
+    const list = state.incomes.slice().sort((a, b2) => a.date.localeCompare(b2.date));
+    const editing = editId ? list.find(x => x.id === editId) : null;
+    const s0 = state.schedule || {};
+    const defItem = editing ? editing.item : (s0.bonus && s0.bonus.daysLeft === 0 ? '獎金' : '薪資');
+    const defDate = editing ? editing.date : (c.isCurrent ? state.today : c.end);
+    const itemOpts = INCOME_ITEMS.concat(editing && INCOME_ITEMS.indexOf(editing.item) < 0 ? [editing.item] : [])
+      .map(x => '<option' + (x === defItem ? ' selected' : '') + '>' + esc(x) + '</option>').join('');
+    openSheet(
+      '<h3 id="sheetTitle">' + +c.start.slice(5, 7) + ' 月收入</h3>' +
+      '<p class="msg" style="margin:4px 0 8px">合計 ' + money(sum(list)) + '，會成為 ' + (+c.nextStart.slice(5, 7)) + ' 月的預算額度</p>' +
+      '<div class="tlist">' + (list.length ? list.map(x => '<div class="trow"><span class="num">' + md(x.date) + '　' + esc(x.item) + '　' + money(x.amount) +
+        (x.note ? '　<span style="color:var(--text-3)">' + esc(x.note) + '</span>' : '') + '</span>' +
+        '<button type="button" data-edit-i="' + esc(x.id) + '" style="color:var(--accent)">修改</button></div>').join('')
+        : '<p class="note-line">這個月還沒有收入紀錄</p>') + '</div>' +
+      '<form id="iForm">' +
+      '<p class="msg" style="margin:0 0 8px;font-weight:600">' + (editing ? '修改這筆收入' : '新增收入') + '</p>' +
+      '<div class="row2"><div class="field"><label for="iItem">項目</label><select id="iItem">' + itemOpts + '</select></div>' +
+      '<div class="field"><label for="iAmt">金額（元）</label><input id="iAmt" type="number" inputmode="numeric" min="1" step="1" value="' + (editing ? editing.amount : '') + '" required></div></div>' +
+      '<div class="field"><label for="iDate">入帳日</label><input id="iDate" type="date" value="' + defDate + '" required></div>' +
+      '<div class="field"><label for="iNote">備註</label><input id="iNote" value="' + esc(editing ? editing.note : '') + '" placeholder="例如：含加班費"></div>' +
+      '<p class="msg err" id="editErr" hidden></p>' +
+      '<div class="actions">' + (editing ? '<button type="button" class="btn danger" id="iDel">刪除</button>' : '<button type="button" class="btn ghost" id="iCancel">關閉</button>') +
+      '<button class="btn" id="iSave">' + (editing ? '儲存修改' : '新增') + '</button></div></form>');
+
+    $('sheet').querySelectorAll('[data-edit-i]').forEach(b2 => { b2.onclick = () => openIncome(b2.dataset.editI); });
+    if ($('iCancel')) $('iCancel').onclick = closeSheet;
+    $('iForm').onsubmit = async e => {
+      e.preventDefault();
+      const f = { item: $('iItem').value, amount: Number($('iAmt').value), date: $('iDate').value, note: $('iNote').value.trim() };
+      if (!Number.isInteger(f.amount) || f.amount <= 0) return showErr('金額需為正整數');
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(f.date)) return showErr('請選入帳日');
+      await mutate($('iSave'), '儲存中…', async () => {
+        if (!isDemo()) await apiPost(Object.assign({ action: editing ? 'updateIncome' : 'addIncome', id: editing ? editing.id : undefined }, f));
+        else if (editing) Object.assign(demo.incomes.find(x => x.id === editing.id), f);
+        else demo.incomes.push(Object.assign({ id: 'demo-i' + Date.now(), source: '網頁' }, f));
+        toast(editing ? '已修改' : '已新增收入');
+      });
+    };
+    if ($('iDel')) $('iDel').onclick = async () => {
+      if ($('iDel').dataset.confirm !== '1') { $('iDel').dataset.confirm = '1'; $('iDel').textContent = '再按一次'; return; }
+      await mutate($('iDel'), '刪除中…', async () => {
+        if (!isDemo()) await apiPost({ action: 'deleteIncome', id: editing.id });
+        else demo.incomes = demo.incomes.filter(x => x.id !== editing.id);
+        toast('已刪除');
+      });
+    };
   }
 
   // ---------- 轉存（投資等） ----------
@@ -908,11 +980,11 @@ button.bud:active { background: var(--surface-2); }
     const target = (state.budget.buckets.find(x => x.name === bucket) || {}).limit || 0;
     openSheet(
       '<h3 id="sheetTitle">' + esc(bucket) + '</h3>' +
-      '<p class="msg" style="margin:4px 0 8px">本期目標 ' + money(target) + '，已轉 ' + money(sum(list)) + '</p>' +
+      '<p class="msg" style="margin:4px 0 8px">' + (target ? '本月目標 ' + money(target) + '，' : '') + '已轉 ' + money(sum(list)) + '</p>' +
       '<div class="tlist">' + (list.length ? list.map(t => '<div class="trow"><span class="num">' + md(t.date) + '　' + money(t.amount) +
         (t.note ? '　<span style="color:var(--text-3)">' + esc(t.note) + '</span>' : '') + '</span>' +
         (state.cycle.isCurrent ? '<button type="button" data-del-t="' + esc(t.id) + '">刪除</button>' : '') + '</div>').join('')
-        : '<p class="note-line">本期還沒有紀錄</p>') + '</div>' +
+        : '<p class="note-line">本月還沒有紀錄</p>') + '</div>' +
       (state.cycle.isCurrent
         ? '<form id="tForm"><div class="row2">' +
           '<div class="field"><label for="tDate">日期</label><input id="tDate" type="date" value="' + state.today + '" max="' + state.today + '" min="' + state.cycle.start + '" required></div>' +
@@ -920,7 +992,7 @@ button.bud:active { background: var(--surface-2); }
           '<div class="field"><label for="tNote">備註</label><input id="tNote" placeholder="例如：0050 定期定額"></div>' +
           '<p class="msg err" id="editErr" hidden></p>' +
           '<button class="btn" id="tSave">記一筆轉存</button></form>'
-        : '<p class="note-line">過去週期只能查看</p>'));
+        : '<p class="note-line">過去月份只能查看</p>'));
     const form = $('tForm');
     if (form) form.onsubmit = async e => {
       e.preventDefault();
@@ -963,7 +1035,7 @@ button.bud:active { background: var(--surface-2); }
     $('catFilters').innerHTML = ['全部'].concat(state.categories).map(c =>
       '<button class="chip" data-fc="' + esc(c) + '" aria-pressed="' + (state.filterCat === c) + '">' + esc(c) + '</button>').join('');
 
-    // 「待處理」跨週期顯示，其他篩選只看本期
+    // 「待處理」跨月份顯示，其他篩選只看本月
     let list = state.filterStatus === '待處理' ? state.pending.slice() : state.records.slice();
     if (state.filterStatus === '已完成') list = list.filter(r => r.status === '已完成');
     if (state.filterCat !== '全部') list = list.filter(r => r.category === state.filterCat);
@@ -1135,7 +1207,7 @@ button.bud:active { background: var(--surface-2); }
 
     // 提醒
     $('assetRemind').hidden = !a.remind;
-    $('assetRemindText').textContent = L ? '這個發薪週期還沒盤點，點這裡更新餘額' : '還沒有任何盤點，點這裡開始';
+    $('assetRemindText').textContent = L ? '這個月還沒盤點，點這裡更新餘額' : '還沒有任何盤點，點這裡開始';
 
     // 盤點後的記帳流量（參考）
     if (L && a.since && a.since.days > 0) {
@@ -1393,6 +1465,7 @@ button.bud:active { background: var(--surface-2); }
   $('prevM').onclick = () => { if (state.cycle) { state.anchor = state.cycle.prevStart; load(); } };
   $('nextM').onclick = () => { if (state.cycle && state.cycle.nextStart <= state.today) { state.anchor = state.cycle.nextStart; load(); } };
   $('budgetEditBtn').onclick = () => { if (state.version) openBudgetEditor(); };
+  $('incomeBtn').onclick = () => { if (state.cycle) openIncome(''); };
   $('refreshBtn').onclick = () => { load(); if (state.view === 'assets') loadAssets(); };
   $('snapBtn').onclick = () => openSnapshot('');
   $('assetRemind').onclick = () => openSnapshot('');
