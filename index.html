@@ -51,6 +51,7 @@
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 html, body { margin: 0; }
 body {
   background: var(--bg);
@@ -92,10 +93,10 @@ main section[hidden] { display: none; }
 
 /* 總覽 */
 .hero { padding-top: 24px; }
-.hero .label { color: var(--text-2); font-size: 14px; }
-.hero .total { font-size: 40px; font-weight: 700; letter-spacing: -.02em; line-height: 1.15; margin: 2px 0 6px; }
-.hero .cmp { font-size: 14px; color: var(--text-2); }
-.hero .cmp b { font-weight: 600; }
+.hero .label, .asset-hero .label { color: var(--text-2); font-size: 14px; }
+.hero .total, .asset-hero .total { font-size: 40px; font-weight: 700; letter-spacing: -.02em; line-height: 1.15; margin: 2px 0 6px; }
+.hero .cmp, .asset-hero .cmp { font-size: 14px; color: var(--text-2); }
+.hero .cmp b, .asset-hero .cmp b { font-weight: 600; }
 .up { color: var(--danger); }
 .down { color: var(--accent); }
 .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
@@ -191,7 +192,7 @@ nav.tabs {
   background: var(--surface); border-top: 1px solid var(--line);
   padding-bottom: env(safe-area-inset-bottom);
 }
-nav.tabs .wrap { display: grid; grid-template-columns: repeat(3, 1fr); height: var(--nav-h); padding: 0; }
+nav.tabs .wrap { display: grid; grid-template-columns: repeat(4, 1fr); height: var(--nav-h); padding: 0; }
 nav.tabs button {
   border: 0; background: transparent; color: var(--text-3);
   display: grid; place-items: center; align-content: center; gap: 2px; font-size: 12px;
@@ -228,6 +229,78 @@ nav.tabs button[aria-current="page"] { color: var(--accent); font-weight: 600; }
   .sheet, .sheet-bg, .btn { transition: none; }
 }
 
+/* 預算 */
+.stats.four { grid-template-columns: 1fr 1fr; }
+.stat small { display: block; font-size: 12px; color: var(--text-3); margin-top: 2px; }
+.block-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.block-head h2 { margin: 0; }
+.link-btn { border: 0; background: transparent; color: var(--accent); font-size: 14px; font-weight: 600; min-height: 44px; padding: 0 4px; }
+.budget { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+.bud {
+  display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; width: 100%;
+  padding: 14px; border: 0; background: transparent; text-align: left; border-top: 1px solid var(--line);
+}
+.bud:first-child { border-top: 0; }
+button.bud:active { background: var(--surface-2); }
+.bud .name { font-weight: 600; }
+.bud .name small { font-weight: 400; color: var(--text-3); margin-left: 6px; font-size: 12px; }
+.bud .fig { text-align: right; font-weight: 600; }
+.bud .fig small { color: var(--text-3); font-weight: 400; }
+.bud .track { grid-column: 1 / -1; height: 8px; border-radius: 4px; background: var(--surface-2); overflow: hidden; }
+.bud .fill { height: 100%; border-radius: 4px; background: var(--accent); }
+.bud.warn .fill { background: var(--warn); }
+.bud.over .fill { background: var(--danger); }
+.bud .sub { grid-column: 1 / -1; font-size: 13px; color: var(--text-2); }
+.bud.over .sub b { color: var(--danger); }
+.bud.warn .sub b { color: var(--warn); }
+.note-line { font-size: 13px; color: var(--text-3); margin: 8px 2px 0; }
+.note-line.warn { color: var(--warn); }
+.sched { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.sched div { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 12px; }
+.sched span { display: block; font-size: 12px; color: var(--text-2); }
+.sched b { display: block; font-size: 18px; font-weight: 650; margin-top: 2px; white-space: nowrap; }
+.sched small { white-space: nowrap; }
+.sched small { font-size: 12px; color: var(--text-3); }
+.sched .hot { border-color: var(--warn); background: var(--warn-soft); }
+.sched .hot small { color: var(--warn); font-weight: 600; }
+
+/* 預算設定面板 */
+.bedit { border: 1px solid var(--line); border-radius: 12px; padding: 12px; margin-bottom: 10px; background: var(--surface); }
+.bedit .top { display: grid; grid-template-columns: 1fr 88px 84px 40px; gap: 8px; align-items: end; }
+.bedit .top .field { margin: 0; }
+.bedit .cats-pick { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.bedit .cats-pick .chip { height: 32px; font-size: 13px; padding: 0 12px; }
+.bedit .cats-pick .chip.taken { opacity: .35; }
+.bedit .rm { width: 40px; height: 48px; border-radius: 12px; border: 1px solid var(--line); background: transparent; color: var(--danger); font-size: 20px; }
+.sumline { display: flex; justify-content: space-between; align-items: center; padding: 10px 2px; font-size: 14px; }
+.sumline b.bad { color: var(--danger); }
+.sumline b.ok { color: var(--accent); }
+.tlist { margin: 4px 0 16px; }
+.tlist .trow { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-top: 1px solid var(--line); font-size: 14px; }
+.tlist .trow button { border: 0; background: transparent; color: var(--danger); min-height: 36px; }
+
+/* 資產 */
+.asset-hero { padding-top: 24px; }
+.asset-hero .when { font-size: 14px; color: var(--text-2); }
+.acct { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; padding: 12px 14px; border-top: 1px solid var(--line); }
+.acct:first-child { border-top: 0; }
+.acct .nm { font-weight: 550; }
+.acct .tp { font-size: 13px; color: var(--text-3); }
+.acct .am { font-weight: 600; text-align: right; }
+.acct .df { font-size: 13px; text-align: right; color: var(--text-3); }
+.acct.debt .am { color: var(--danger); }
+.acct.total { background: var(--surface-2); }
+.trend { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 12px 8px; }
+.trend svg { display: block; width: 100%; height: 140px; overflow: visible; }
+.trend .axis { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-3); padding: 6px 2px 0; }
+.snap-row { display: flex; justify-content: space-between; width: 100%; padding: 12px 14px; min-height: 48px; border: 0; border-top: 1px solid var(--line); background: transparent; text-align: left; font-size: 14px; }
+.snap-row:first-child { border-top: 0; }
+.snap-row:active { background: var(--surface-2); }
+.sedit { display: grid; grid-template-columns: 1fr 84px 1fr 40px; gap: 8px; align-items: end; margin-bottom: 10px; }
+.sedit .field { margin: 0; }
+.sedit .rm { width: 40px; height: 48px; border-radius: 12px; border: 1px solid var(--line); background: transparent; color: var(--danger); font-size: 20px; }
+.since { font-size: 13px; color: var(--text-2); background: var(--surface-2); border-radius: 10px; padding: 10px 12px; margin-top: 12px; line-height: 1.7; }
+
 .toast {
   position: fixed; left: 50%; bottom: calc(var(--nav-h) + 16px + env(safe-area-inset-bottom)); z-index: 40;
   transform: translateX(-50%); background: var(--text); color: var(--bg);
@@ -242,11 +315,11 @@ nav.tabs button[aria-current="page"] { color: var(--accent); font-weight: 600; }
 <header class="top">
   <div class="wrap">
     <div class="month">
-      <button class="icon-btn" id="prevM" aria-label="上個月">
+      <button class="icon-btn" id="prevM" aria-label="上一期">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
       </button>
       <strong id="monthLabel" class="num">----</strong>
-      <button class="icon-btn" id="nextM" aria-label="下個月">
+      <button class="icon-btn" id="nextM" aria-label="下一期">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
       </button>
     </div>
@@ -264,12 +337,14 @@ nav.tabs button[aria-current="page"] { color: var(--accent); font-weight: 600; }
   <!-- 總覽 -->
   <section id="view-overview">
     <div class="hero">
-      <div class="label" id="totalLabel">本月支出</div>
+      <div class="label" id="totalLabel">本期支出</div>
       <div class="total num" id="total"><span class="skel" style="display:inline-block;width:180px;height:40px"></span></div>
       <div class="cmp num" id="cmp">&nbsp;</div>
-      <div class="stats">
-        <div class="stat"><span>今日</span><b class="num" id="todayAmt">-</b></div>
-        <div class="stat"><span>日平均</span><b class="num" id="avgAmt">-</b></div>
+      <div class="stats four">
+        <div class="stat"><span>今天還能花</span><b class="num" id="todayLeft">-</b><small id="todayLeftNote">&nbsp;</small></div>
+        <div class="stat"><span>今日已花</span><b class="num" id="todayAmt">-</b><small>&nbsp;</small></div>
+        <div class="stat"><span>本期收入</span><b class="num" id="incomeAmt">-</b><small id="incomeNote">&nbsp;</small></div>
+        <div class="stat"><span>本期結餘</span><b class="num" id="balanceAmt">-</b><small>收入－支出－轉存</small></div>
       </div>
       <button class="pending-banner" id="pendingBanner" hidden>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
@@ -278,12 +353,21 @@ nav.tabs button[aria-current="page"] { color: var(--accent); font-weight: 600; }
       </button>
     </div>
     <div class="block">
+      <h2>近期日程</h2>
+      <div class="sched" id="sched"></div>
+    </div>
+    <div class="block">
+      <div class="block-head"><h2>預算</h2><button class="link-btn" id="budgetEditBtn">調整</button></div>
+      <div class="budget" id="budget"></div>
+      <p class="note-line" id="budgetNote"></p>
+    </div>
+    <div class="block">
       <h2>分類</h2>
       <div class="cats" id="cats"></div>
     </div>
     <div class="block">
       <h2>每日支出</h2>
-      <div class="daily"><svg id="dailySvg" preserveAspectRatio="none" role="img" aria-label="本月每日支出長條圖"></svg><div class="axis num" id="dailyAxis"></div></div>
+      <div class="daily"><svg id="dailySvg" preserveAspectRatio="none" role="img" aria-label="本期每日支出長條圖"></svg><div class="axis num" id="dailyAxis"></div></div>
     </div>
     <div class="block">
       <h2>最近紀錄</h2>
@@ -296,6 +380,34 @@ nav.tabs button[aria-current="page"] { color: var(--accent); font-weight: 600; }
     <div class="filters" id="statusFilters"></div>
     <div class="filters" id="catFilters" style="padding-top:4px"></div>
     <div class="block" style="margin-top:12px"><div id="fullList"></div></div>
+  </section>
+
+  <!-- 資產 -->
+  <section id="view-assets" hidden>
+    <div class="asset-hero">
+      <div class="label" style="color:var(--text-2);font-size:14px">淨資產</div>
+      <div class="total num" id="netWorth"><span class="skel" style="display:inline-block;width:180px;height:40px"></span></div>
+      <div class="cmp num" id="netCmp">&nbsp;</div>
+      <div class="when" id="netWhen"></div>
+      <button class="pending-banner" id="assetRemind" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+        <span id="assetRemindText"></span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+      <div class="since" id="sinceNote" hidden></div>
+    </div>
+    <div class="block">
+      <div class="block-head"><h2>各帳戶</h2><button class="link-btn" id="snapBtn">盤點</button></div>
+      <div class="list" id="acctList"></div>
+    </div>
+    <div class="block">
+      <h2>淨資產趨勢</h2>
+      <div class="trend"><svg id="trendSvg" role="img" aria-label="淨資產趨勢折線圖"></svg><div class="axis num" id="trendAxis"></div></div>
+    </div>
+    <div class="block">
+      <h2>盤點紀錄</h2>
+      <div class="list" id="snapList"></div>
+    </div>
   </section>
 
   <!-- 記一筆 -->
@@ -320,6 +432,9 @@ nav.tabs button[aria-current="page"] { color: var(--accent); font-weight: 600; }
     </button>
     <button data-view="list">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>明細
+    </button>
+    <button data-view="assets">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="2"/><path d="M3 10h18M16 15h2"/><path d="M7 6V4h10v2"/></svg>資產
     </button>
     <button data-view="add">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>記一筆
@@ -347,8 +462,9 @@ nav.tabs button[aria-current="page"] { color: var(--accent); font-weight: 600; }
   const DEFAULT_PAYS = ['現金', '信用卡', '行動支付', '悠遊卡', '其他'];
 
   const state = {
-    month: '', today: '', view: 'overview',
-    records: [], prevRecords: [], pending: [],
+    anchor: '', today: '', view: 'overview', assets: null,
+    cycle: null, prevCycle: null, records: [], prevRecords: [], pending: [],
+    incomes: [], transfers: [], budget: null, version: null, schedule: null, holidayWarning: '',
     categories: DEFAULT_CATS, payments: DEFAULT_PAYS,
     filterStatus: '全部', filterCat: '全部',
     loading: false,
@@ -363,13 +479,10 @@ nav.tabs button[aria-current="page"] { color: var(--accent); font-weight: 600; }
     const d = new Date(Date.now() + 8 * 3600e3);
     return d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate());
   };
-  const shiftMonth = (ym, k) => {
-    let y = +ym.slice(0, 4), m = +ym.slice(5, 7) + k;
-    while (m < 1) { m += 12; y--; }
-    while (m > 12) { m -= 12; y++; }
-    return y + '-' + pad(m);
-  };
   const daysIn = ym => new Date(+ym.slice(0, 4), +ym.slice(5, 7), 0).getDate();
+  const addDays = (ymd, n) => new Date(Date.UTC(+ymd.slice(0, 4), +ymd.slice(5, 7) - 1, +ymd.slice(8, 10) + n)).toISOString().slice(0, 10);
+  const daysBetween = (a, b) => Math.round((Date.parse(b + 'T00:00:00Z') - Date.parse(a + 'T00:00:00Z')) / 864e5);
+  const md = ymd => +ymd.slice(5, 7) + '/' + +ymd.slice(8, 10);
   const sum = list => list.reduce((s, r) => s + (r.amount || 0), 0);
   const weekday = d => '日一二三四五六'[new Date(d + 'T00:00:00').getDay()];
 
@@ -407,39 +520,106 @@ nav.tabs button[aria-current="page"] { color: var(--accent); font-weight: 600; }
   }
 
   // ---------- 示範資料（未設定時使用） ----------
-  function demoData(month) {
-    const today = twToday();
+  // 2026 年平日放假日（補假、國定假日），示範用；正式資料由後端的「假日」工作表決定
+  const DEMO_OFF = ['2026-01-01', '2026-02-16', '2026-02-17', '2026-02-18', '2026-02-19', '2026-02-20', '2026-02-27',
+    '2026-04-03', '2026-04-06', '2026-05-01', '2026-06-19', '2026-09-25', '2026-09-28', '2026-10-09', '2026-10-26', '2026-12-25'];
+  const DEMO_BUCKETS = [
+    { name: '生活必要', type: '消費', pct: 30, cats: ['餐飲'] },
+    { name: '其他', type: '消費', pct: 15, cats: ['交通', '購物', '生活日用', '醫療', '帳單', '其他'] },
+    { name: '娛樂', type: '消費', pct: 25, cats: ['娛樂'] },
+    { name: '投資', type: '轉存', pct: 30, cats: [] },
+  ];
+  const demo = { version: { start: '', salary: 40000, buckets: DEMO_BUCKETS }, transfers: [], records: null };
+
+  function demoOff(ymd) {
+    const w = new Date(ymd + 'T00:00:00Z').getUTCDay();
+    return w === 0 || w === 6 || DEMO_OFF.indexOf(ymd) >= 0;
+  }
+  function demoSched(y, m, day) {
+    let d = y + '-' + pad(m) + '-' + pad(Math.min(day, new Date(Date.UTC(y, m, 0)).getUTCDate()));
+    while (demoOff(d)) d = addDays(d, -1);
+    return d;
+  }
+  function demoCycle(ymd) {
+    const y = +ymd.slice(0, 4), m = +ymd.slice(5, 7);
+    const ym = k => { const t = y * 12 + m - 1 + k; return [Math.floor(t / 12), t % 12 + 1]; };
+    const pay = k => { const a = ym(k); return demoSched(a[0], a[1], 10); };
+    let start, next;
+    if (ymd >= pay(0)) { start = pay(0); next = pay(1); } else { start = pay(-1); next = pay(0); }
+    const ps = +start.slice(0, 4) * 12 + +start.slice(5, 7) - 2;
+    return { start, end: addDays(next, -1), nextStart: next, prevStart: demoSched(Math.floor(ps / 12), ps % 12 + 1, 10), days: daysBetween(start, next) };
+  }
+  function demoRecords(c, today) {
     const items = [
       ['餐飲', '蛋餅', 35], ['餐飲', '咖啡', 60], ['餐飲', '雞腿飯', 120], ['交通', '加油', 500],
       ['餐飲', '牛肉麵', 160], ['生活日用', '全聯', 486], ['娛樂', '電影', 330], ['餐飲', '便當', 95],
       ['帳單', '電話費', 599], ['購物', '球鞋', 2890], ['交通', '停車', 60], ['餐飲', '火鍋', 820],
     ];
-    const n = month === today.slice(0, 7) ? +today.slice(8) : daysIn(month);
     const recs = [];
-    let seed = month.split('-').reduce((a, b) => a + +b, 0);
+    let seed = c.start.split('-').reduce((a, b) => a + +b, 0);
     const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
-    for (let d = 1; d <= n; d++) {
-      const k = 1 + Math.floor(rnd() * 3);
+    for (let d = c.start; d <= c.end && d <= today; d = addDays(d, 1)) {
+      const k = Math.floor(rnd() * 3);
       for (let j = 0; j < k; j++) {
         const it = items[Math.floor(rnd() * items.length)];
-        const date = month + '-' + pad(d);
-        recs.push({ id: date + '-' + j, date, created: date + ' 12:00:00', category: it[0], item: it[1], amount: it[2],
-          payment: rnd() > .7 ? '信用卡' : '現金', status: '已完成', confidence: '高', doubt: '',
-          raw: it[1] + it[2], source: 'Tasks' });
+        recs.push({ id: d + '-' + j, date: d, created: d + ' 12:0' + j + ':00', category: it[0], item: it[1], amount: it[2],
+          payment: rnd() > .7 ? '信用卡' : '現金', status: '已完成', confidence: '高', doubt: '', raw: it[1] + it[2], source: 'Tasks' });
       }
     }
-    if (month === today.slice(0, 7)) {
-      recs.push({ id: 'demo-p1', date: today, created: today + ' 09:10:00', category: '生活日用', item: '衛生紙', amount: null,
-        payment: '現金', status: '待補金額', confidence: '高', doubt: '', raw: '買衛生紙', source: 'Tasks' });
-      recs.push({ id: 'demo-p2', date: today, created: today + ' 19:42:00', category: '餐飲', item: '雞腿飯', amount: 120,
-        payment: '現金', status: '待確認', confidence: '低', doubt: '金額原文「一伯二」推測 120', raw: '晚餐雞腿飯一伯二', source: 'Tasks' });
+    return recs;
+  }
+  function demoBudget(c, version, records, incomes, transfers) {
+    const incomeSum = sum(incomes);
+    const projected = incomeSum <= 0;
+    const base = projected ? version.salary : incomeSum;
+    const owner = {};
+    version.buckets.forEach(b => { if (b.type === '消費') b.cats.forEach(x => { owner[x] = b.name; }); });
+    return {
+      base, projected, incomeSum,
+      buckets: version.buckets.map(b => ({ name: b.name, type: b.type, pct: b.pct, cats: b.cats, limit: Math.round(base * b.pct / 100),
+        used: b.type === '消費' ? sum(records.filter(r => owner[r.category] === b.name)) : sum(transfers.filter(t => t.bucket === b.name)) })),
+      unassigned: { cats: DEFAULT_CATS.filter(x => !owner[x]), used: sum(records.filter(r => !owner[r.category])) },
+    };
+  }
+  function demoData(anchor) {
+    const today = twToday();
+    const c = demoCycle(anchor || today);
+    const isCurrent = c.start <= today && today <= c.end;
+    const prev = demoCycle(c.prevStart);
+    let records = demoRecords(c, today);
+    if (isCurrent) {
+      if (!demo.records) {
+        demo.records = records.concat([
+          { id: 'demo-p1', date: today, created: today + ' 09:10:00', category: '生活日用', item: '衛生紙', amount: null,
+            payment: '現金', status: '待補金額', confidence: '高', doubt: '', raw: '買衛生紙', source: 'Tasks' },
+          { id: 'demo-p2', date: today, created: today + ' 19:42:00', category: '餐飲', item: '雞腿飯', amount: 120,
+            payment: '現金', status: '待確認', confidence: '低', doubt: '金額原文「一伯二」推測 120', raw: '晚餐雞腿飯一伯二', source: 'Tasks' },
+        ]);
+        demo.transfers = [{ id: 'demo-t1', date: c.start, bucket: '投資', amount: 5000, note: '定期定額' }];
+      }
+      records = demo.records;
     }
-    const prevM = shiftMonth(month, -1);
-    const prev = [];
-    for (let d = 1; d <= daysIn(prevM); d++) prev.push({ date: prevM + '-' + pad(d), amount: 300 + Math.floor(rnd() * 900) });
-    return { month, today, records: recs, prevRecords: prev,
-      pending: recs.filter(r => r.status === '待補金額' || r.status === '待確認'),
-      categories: DEFAULT_CATS, payments: DEFAULT_PAYS };
+    const y = +c.start.slice(0, 4), m = +c.start.slice(5, 7);
+    const bonusDay = demoSched(y, m, 25);
+    const incomes = [{ id: 'demo-i1', item: '薪資', amount: demo.version.salary, date: c.start, source: '自動' }];
+    if (bonusDay <= today && bonusDay <= c.end) incomes.push({ id: 'demo-i2', item: '獎金', amount: 6000, date: bonusDay, source: '手動' });
+    const transfers = isCurrent ? demo.transfers : [];
+    const nextOf = day => { for (let k = 0; k < 3; k++) { const t = (+today.slice(0, 4)) * 12 + +today.slice(5, 7) - 1 + k; const d = demoSched(Math.floor(t / 12), t % 12 + 1, day); if (d >= today) return d; } return ''; };
+    const cardDate = (() => { const y0 = +today.slice(0, 4), m0 = +today.slice(5, 7); const d = y0 + '-' + pad(m0) + '-12'; if (d >= today) return d; const t = y0 * 12 + m0; return Math.floor(t / 12) + '-' + pad(t % 12 + 1) + '-12'; })();
+    const sch = d => ({ date: d, daysLeft: daysBetween(today, d) });
+    return {
+      today,
+      cycle: Object.assign({}, c, { isCurrent, daysLeft: isCurrent ? daysBetween(today, c.end) + 1 : 0 }),
+      prevCycle: { start: prev.start, end: prev.end },
+      records,
+      prevRecords: demoRecords(prev, today).map(r => ({ date: r.date, amount: r.amount })),
+      pending: (isCurrent ? records : demo.records || []).filter(r => r.status === '待補金額' || r.status === '待確認'),
+      incomes, transfers,
+      budget: demoBudget(c, demo.version, records, incomes, transfers),
+      version: demo.version, editableFrom: demoCycle(today).start,
+      schedule: { salary: sch(nextOf(10)), bonus: sch(nextOf(25)), card: Object.assign(sch(cardDate), { remind: daysBetween(today, cardDate) <= 3 }) },
+      holidayWarning: '', categories: DEFAULT_CATS, payments: DEFAULT_PAYS,
+    };
   }
 
   // ---------- 載入 ----------
@@ -447,11 +627,15 @@ nav.tabs button[aria-current="page"] { color: var(--accent); font-weight: 600; }
     state.loading = true;
     $('demoTag').hidden = !isDemo();
     try {
-      const data = isDemo() ? demoData(state.month) : await apiGet({ action: 'list', month: state.month });
+      const data = isDemo() ? demoData(state.anchor) : await apiGet({ action: 'list', date: state.anchor });
       Object.assign(state, {
-        today: data.today, records: data.records || [], prevRecords: data.prevRecords || [],
-        pending: data.pending || [], categories: data.categories || DEFAULT_CATS, payments: data.payments || DEFAULT_PAYS,
+        today: data.today, cycle: data.cycle, prevCycle: data.prevCycle,
+        records: data.records || [], prevRecords: data.prevRecords || [], pending: data.pending || [],
+        incomes: data.incomes || [], transfers: data.transfers || [], budget: data.budget, version: data.version,
+        editableFrom: data.editableFrom, schedule: data.schedule, holidayWarning: data.holidayWarning || '',
+        categories: data.categories || DEFAULT_CATS, payments: data.payments || DEFAULT_PAYS,
       });
+      state.anchor = data.cycle.start;
     } catch (e) {
       toast('讀取失敗：' + e.message);
       if (!state.today) state.today = twToday();
@@ -462,73 +646,303 @@ nav.tabs button[aria-current="page"] { color: var(--accent); font-weight: 600; }
 
   // ---------- 繪製 ----------
   function render() {
-    $('monthLabel').textContent = state.month.replace('-', ' / ');
-    $('nextM').disabled = state.month >= state.today.slice(0, 7);
+    if (!state.cycle) return;
+    const c = state.cycle;
+    $('monthLabel').textContent = md(c.start) + ' ～ ' + md(c.end);
+    $('nextM').disabled = c.nextStart > state.today;
     $('nextM').style.opacity = $('nextM').disabled ? .3 : 1;
     renderOverview();
     renderList();
   }
 
   function renderOverview() {
+    const c = state.cycle;
     const recs = state.records;
-    const isCurrent = state.month === state.today.slice(0, 7);
     const total = sum(recs);
-    $('totalLabel').textContent = isCurrent ? '本月支出' : state.month.slice(5).replace(/^0/, '') + ' 月支出';
+    const b = state.budget;
+    $('totalLabel').textContent = c.isCurrent ? '本期支出' : md(c.start) + ' ～ ' + md(c.end) + ' 支出';
     $('total').textContent = money(total);
 
-    // 與上月同期比較：本月看到今天為止，過去月份看整月
-    const upto = isCurrent ? +state.today.slice(8) : 31;
-    const prevSame = sum(state.prevRecords.filter(r => +r.date.slice(8) <= upto));
+    // 與上一期同樣經過天數比較
+    const elapsed = c.isCurrent ? daysBetween(c.start, state.today) : c.days - 1;
+    const pc = state.prevCycle;
+    const prevSame = pc ? sum(state.prevRecords.filter(r => daysBetween(pc.start, r.date) <= elapsed)) : 0;
     if (prevSame > 0) {
       const diff = total - prevSame;
       const pct = Math.round(Math.abs(diff) / prevSame * 100);
-      $('cmp').innerHTML = (isCurrent ? '比上月同期 ' : '比上月 ') +
+      $('cmp').innerHTML = (c.isCurrent ? '比上期同期 ' : '比上期 ') +
         '<b class="' + (diff > 0 ? 'up' : 'down') + '">' + (diff > 0 ? '多 ' : '少 ') + money(Math.abs(diff)) + '（' + pct + '%）</b>';
     } else {
-      $('cmp').textContent = '上月沒有資料可比較';
+      $('cmp').textContent = '上期沒有資料可比較';
     }
 
-    $('todayAmt').textContent = isCurrent ? money(sum(recs.filter(r => r.date === state.today))) : '-';
-    const days = isCurrent ? +state.today.slice(8) : daysIn(state.month);
-    $('avgAmt').textContent = money(Math.round(total / Math.max(days, 1)));
+    // 今天還能花：消費型預算剩餘總額 ÷ 本期剩餘天數
+    const spendB = b ? b.buckets.filter(x => x.type === '消費') : [];
+    const leftAll = spendB.reduce((s, x) => s + (x.limit - x.used), 0) - (b ? b.unassigned.used : 0);
+    if (c.isCurrent && c.daysLeft) {
+      const perDay = Math.floor(Math.max(leftAll, 0) / c.daysLeft);
+      $('todayLeft').textContent = money(perDay);
+      $('todayLeft').className = 'num' + (leftAll < 0 ? ' up' : '');
+      $('todayLeftNote').textContent = leftAll < 0 ? '消費預算已超支 ' + money(-leftAll) : '剩 ' + c.daysLeft + ' 天，共 ' + money(leftAll);
+    } else {
+      $('todayLeft').textContent = '-';
+      $('todayLeftNote').textContent = '過去週期';
+    }
+    $('todayAmt').textContent = c.isCurrent ? money(sum(recs.filter(r => r.date === state.today))) : '-';
+    const incomeSum = sum(state.incomes);
+    const transferSum = sum(state.transfers);
+    $('incomeAmt').textContent = money(incomeSum);
+    const bonus = state.incomes.filter(x => x.item !== '薪資');
+    $('incomeNote').textContent = bonus.length ? '含獎金等 ' + money(sum(bonus)) : '薪資';
+    const bal = incomeSum - total - transferSum;
+    $('balanceAmt').textContent = (bal < 0 ? '-' : '') + money(Math.abs(bal));
+    $('balanceAmt').className = 'num' + (bal < 0 ? ' up' : '');
 
-    // 待處理（不分月份）
+    // 待處理
     const need = state.pending.filter(r => r.status === '待補金額').length;
     const check = state.pending.filter(r => r.status === '待確認').length;
     $('pendingBanner').hidden = !(need + check);
     $('pendingText').innerHTML = [need ? '<b>' + need + '</b> 筆待補金額' : '', check ? '<b>' + check + '</b> 筆待確認' : '']
       .filter(Boolean).join('、');
 
+    renderSchedule();
+    renderBudget();
+
     // 分類
     const byCat = {};
     recs.forEach(r => { byCat[r.category] = (byCat[r.category] || 0) + (r.amount || 0); });
-    const cats = Object.entries(byCat).filter(e => e[1] > 0).sort((a, b) => b[1] - a[1]);
+    const cats = Object.entries(byCat).filter(e => e[1] > 0).sort((a, b2) => b2[1] - a[1]);
     const max = cats.length ? cats[0][1] : 1;
-    $('cats').innerHTML = cats.length ? cats.map(([c, v], i) =>
-      '<div class="cat-row"><span>' + esc(c) + '</span>' +
+    $('cats').innerHTML = cats.length ? cats.map(([cat, v], i) =>
+      '<div class="cat-row"><span>' + esc(cat) + '</span>' +
       '<div><div class="bar' + (i ? ' dim' : '') + '" style="width:' + (v / max * 100).toFixed(1) + '%"></div></div>' +
       '<span class="v num">' + money(v) + ' · ' + Math.round(v / total * 100) + '%</span></div>').join('')
-      : '<div class="empty"><b>這個月還沒有紀錄</b>對 Gemini 說「新增待辦，晚餐雞腿飯一百二」開始記帳</div>';
+      : '<div class="empty"><b>這一期還沒有紀錄</b>對 Gemini 說「新增待辦，晚餐雞腿飯一百二」開始記帳</div>';
 
-    // 每日長條
-    const n = daysIn(state.month);
-    const perDay = Array.from({ length: n }, (_, i) => sum(recs.filter(r => +r.date.slice(8) === i + 1)));
+    // 每日長條（整個週期）
+    const n = c.days;
+    const perDay = Array.from({ length: n }, (_, i) => { const d = addDays(c.start, i); return sum(recs.filter(r => r.date === d)); });
     const dmax = Math.max(...perDay, 1);
     const W = n * 10, H = 100;
-    const todayIdx = isCurrent ? +state.today.slice(8) - 1 : -1;
+    const todayIdx = c.isCurrent ? daysBetween(c.start, state.today) : -1;
     $('dailySvg').setAttribute('viewBox', '0 0 ' + W + ' ' + H);
     $('dailySvg').innerHTML = perDay.map((v, i) => {
       const h = v ? Math.max(v / dmax * (H - 4), 2) : 0;
       const fill = i === todayIdx ? 'var(--accent)' : 'var(--text-3)';
-      const op = i === todayIdx ? 1 : (i > todayIdx && isCurrent ? .15 : .55);
+      const op = i === todayIdx ? 1 : (c.isCurrent && i > todayIdx ? .15 : .55);
       return '<rect x="' + (i * 10 + 1.5) + '" y="' + (H - h) + '" width="7" height="' + h + '" rx="1.5" fill="' + fill + '" opacity="' + op + '"><title>' +
-        (i + 1) + ' 日 ' + money(v) + '</title></rect>';
+        md(addDays(c.start, i)) + ' ' + money(v) + '</title></rect>';
     }).join('');
-    $('dailyAxis').innerHTML = '<span>1</span><span>' + Math.ceil(n / 2) + '</span><span>' + n + '</span>';
+    $('dailyAxis').innerHTML = '<span>' + md(c.start) + '</span><span>' + md(addDays(c.start, Math.floor(n / 2))) + '</span><span>' + md(c.end) + '</span>';
 
     // 最近
-    const recent = [...recs].sort((a, b) => (b.created || '').localeCompare(a.created || '')).slice(0, 5);
+    const recent = [...recs].sort((a, b2) => (b2.created || '').localeCompare(a.created || '')).slice(0, 5);
     $('recent').innerHTML = recent.length ? '<div class="list">' + recent.map(recRow).join('') + '</div>' : '';
+  }
+
+  function renderSchedule() {
+    const s = state.schedule;
+    if (!s) { $('sched').innerHTML = ''; return; }
+    const cell = (label, x, hot) => {
+      if (!x || !x.date) return '<div><span>' + label + '</span><b>-</b></div>';
+      const left = x.daysLeft === 0 ? '今天' : x.daysLeft + ' 天後';
+      return '<div class="' + (hot ? 'hot' : '') + '"><span>' + label + '</span><b class="num">' + md(x.date) + '</b><small>週' + weekday(x.date) + '・' + left + '</small></div>';
+    };
+    $('sched').innerHTML = cell('發薪', s.salary) + cell('獎金', s.bonus) + cell('信用卡繳費', s.card, s.card && s.card.remind);
+  }
+
+  function renderBudget() {
+    const b = state.budget;
+    if (!b) { $('budget').innerHTML = ''; return; }
+    const c = state.cycle;
+    const rows = b.buckets.map((x, i) => {
+      const ratio = x.limit ? x.used / x.limit : (x.used ? 2 : 0);
+      if (x.type === '轉存') {
+        const done = x.used >= x.limit;
+        return '<button class="bud' + '" data-transfer="' + esc(x.name) + '">' +
+          '<span class="name">' + esc(x.name) + '<small>' + x.pct + '%・轉存</small></span>' +
+          '<span class="fig num">' + money(x.used) + '<small> / ' + money(x.limit) + '</small></span>' +
+          '<span class="track"><span class="fill" style="display:block;width:' + Math.min(ratio * 100, 100).toFixed(1) + '%"></span></span>' +
+          '<span class="sub">' + (done ? '本期目標已達成' : '還差 <b>' + money(x.limit - x.used) + '</b>，點這裡記一筆轉存') + '</span></button>';
+      }
+      const left = x.limit - x.used;
+      const cls = ratio >= 1 ? ' over' : ratio >= .8 ? ' warn' : '';
+      const perDay = c.isCurrent && c.daysLeft && left > 0 ? '，每天約 ' + money(Math.floor(left / c.daysLeft)) : '';
+      return '<div class="bud' + cls + '">' +
+        '<span class="name">' + esc(x.name) + '<small>' + x.pct + '%・' + esc(x.cats.join('、')) + '</small></span>' +
+        '<span class="fig num">' + money(x.used) + '<small> / ' + money(x.limit) + '</small></span>' +
+        '<span class="track"><span class="fill" style="display:block;width:' + Math.min(ratio * 100, 100).toFixed(1) + '%"></span></span>' +
+        '<span class="sub">' + (left < 0 ? '超支 <b>' + money(-left) + '</b>' : '剩 <b>' + money(left) + '</b>' + perDay) + '</span></div>';
+    });
+    if (b.unassigned.used > 0) {
+      rows.push('<div class="bud over"><span class="name">未分配<small>' + esc(b.unassigned.cats.join('、')) + '</small></span>' +
+        '<span class="fig num">' + money(b.unassigned.used) + '</span><span class="sub">這些分類沒有歸屬任何預算，按「調整」指定</span></div>');
+    }
+    $('budget').innerHTML = rows.join('');
+    const notes = [];
+    notes.push('預算基數 ' + money(b.base) + (b.projected ? '（本期尚無收入紀錄，以固定薪資預估）' : '（本期收入）'));
+    if (state.holidayWarning) notes.push(state.holidayWarning);
+    $('budgetNote').textContent = notes.join('。');
+    $('budgetNote').className = 'note-line' + (state.holidayWarning ? ' warn' : '');
+    $('budgetEditBtn').hidden = !c.isCurrent;
+  }
+
+  // ---------- 預算設定面板 ----------
+  function openBudgetEditor() {
+    const v = state.version;
+    const draft = { salary: v.salary, buckets: v.buckets.map(x => ({ name: x.name, type: x.type, pct: x.pct, cats: x.cats.slice() })) };
+
+    function owners() {
+      const o = {};
+      draft.buckets.forEach((x, i) => { if (x.type === '消費') x.cats.forEach(c => { o[c] = i; }); });
+      return o;
+    }
+    function errors() {
+      const errs = [];
+      if (!Number.isInteger(draft.salary) || draft.salary <= 0) errs.push('固定薪資需為正整數');
+      const names = {};
+      draft.buckets.forEach((x, i) => {
+        if (!x.name.trim()) errs.push('第 ' + (i + 1) + ' 個類別沒有名稱');
+        else if (names[x.name.trim()]) errs.push('名稱「' + x.name + '」重複');
+        names[x.name.trim()] = 1;
+        if (!(x.pct >= 0 && x.pct <= 100)) errs.push('「' + x.name + '」百分比需在 0 到 100');
+      });
+      const total = draft.buckets.reduce((s, x) => s + (Number(x.pct) || 0), 0);
+      if (Math.abs(total - 100) > 0.01) errs.push('合計需要剛好 100%');
+      const o = owners();
+      const miss = state.categories.filter(c => o[c] === undefined);
+      if (miss.length) errs.push('還沒有歸屬：' + miss.join('、'));
+      if (!draft.buckets.length) errs.push('至少要有一個預算類別');
+      return { errs, total };
+    }
+    function draw() {
+      const o = owners();
+      const { errs, total } = errors();
+      const base = draft.salary || 0;
+      $('bRows').innerHTML = draft.buckets.map((x, i) => '<div class="bedit" data-i="' + i + '">' +
+        '<div class="top">' +
+        '<div class="field"><label>名稱</label><input data-k="name" value="' + esc(x.name) + '" maxlength="12"></div>' +
+        '<div class="field"><label>百分比</label><input data-k="pct" type="number" inputmode="decimal" min="0" max="100" step="1" value="' + x.pct + '"></div>' +
+        '<div class="field"><label>類型</label><select data-k="type"><option' + (x.type === '消費' ? ' selected' : '') + '>消費</option><option' + (x.type === '轉存' ? ' selected' : '') + '>轉存</option></select></div>' +
+        '<button type="button" class="rm" data-rm="' + i + '" aria-label="刪除' + esc(x.name) + '">×</button></div>' +
+        (x.type === '消費'
+          ? '<div class="cats-pick">' + state.categories.map(c => {
+            const mine = o[c] === i, taken = o[c] !== undefined && !mine;
+            return '<button type="button" class="chip' + (taken ? ' taken' : '') + '" data-cat="' + esc(c) + '" aria-pressed="' + mine + '">' + esc(c) + '</button>';
+          }).join('') + '</div>'
+          : '<p class="note-line">轉存型：不算消費，另外記錄每次轉出的金額</p>') +
+        '<p class="note-line est">每期約 ' + money(Math.round(base * (Number(x.pct) || 0) / 100)) + '（以固定薪資計，有獎金的期會更多）</p>' +
+        '</div>').join('');
+      refresh();
+    }
+    // 只更新合計、錯誤訊息與每類估算金額，不重建輸入框（避免正在輸入的欄位被換掉）
+    function refresh() {
+      const { errs, total } = errors();
+      const off = Math.abs(total - 100) > 0.01;
+      $('bSum').innerHTML = '<span>合計</span><b class="num ' + (off ? 'bad' : 'ok') + '">' + Math.round(total * 100) / 100 + '%' +
+        (off ? (total < 100 ? '，還差 ' + Math.round((100 - total) * 100) / 100 + '%' : '，超過 ' + Math.round((total - 100) * 100) / 100 + '%') : '') + '</b>';
+      $('bErr').hidden = !errs.length;
+      $('bErr').textContent = errs.join('；');
+      $('bSave').disabled = !!errs.length;
+      $('bRows').querySelectorAll('.bedit').forEach(box => {
+        const x = draft.buckets[+box.dataset.i];
+        const est = box.querySelector('.est');
+        if (x && est) est.textContent = '每期約 ' + money(Math.round((draft.salary || 0) * (Number(x.pct) || 0) / 100)) + '（以固定薪資計，有獎金的期會更多）';
+      });
+    }
+
+    openSheet(
+      '<h3 id="sheetTitle">預算設定</h3>' +
+      '<p class="msg" style="margin:4px 0 14px">從本期（' + md(state.editableFrom || state.cycle.start) + ' 起）生效，過去週期維持原本的設定。點分類可以移到別的類別。</p>' +
+      '<div class="field"><label for="bSalary">固定薪資（元／月）</label><input id="bSalary" type="number" inputmode="numeric" min="1" step="1" value="' + draft.salary + '"></div>' +
+      '<div id="bRows"></div>' +
+      '<button type="button" class="btn ghost" id="bAdd" style="margin-bottom:6px">＋ 新增預算類別</button>' +
+      '<div class="sumline" id="bSum"></div>' +
+      '<p class="msg err" id="bErr" hidden></p><p class="msg err" id="editErr" hidden></p>' +
+      '<div class="actions"><button type="button" class="btn ghost" id="bCancel">取消</button><button type="button" class="btn" id="bSave">儲存</button></div>');
+
+    $('bSalary').oninput = e => { draft.salary = Number(e.target.value); refresh(); };
+    $('bRows').oninput = e => {
+      const box = e.target.closest('.bedit'); if (!box) return;
+      const i = +box.dataset.i, k = e.target.dataset.k;
+      if (k === 'name') { draft.buckets[i].name = e.target.value; refresh(); }
+      if (k === 'pct') { draft.buckets[i].pct = e.target.value === '' ? NaN : Number(e.target.value); refresh(); }
+    };
+    // 只有「類型」改變需要重建（分類選擇區會出現或消失）
+    $('bRows').onchange = e => {
+      if (e.target.dataset.k !== 'type') return;
+      const i = +e.target.closest('.bedit').dataset.i;
+      draft.buckets[i].type = e.target.value;
+      if (e.target.value === '轉存') draft.buckets[i].cats = [];
+      draw();
+    };
+    $('bRows').onclick = e => {
+      const rm = e.target.closest('[data-rm]');
+      if (rm) { draft.buckets.splice(+rm.dataset.rm, 1); return draw(); }
+      const chip = e.target.closest('[data-cat]');
+      if (chip) {
+        const i = +chip.closest('.bedit').dataset.i, cat = chip.dataset.cat;
+        draft.buckets.forEach((x, j) => { if (j !== i) x.cats = x.cats.filter(c => c !== cat); });
+        const mine = draft.buckets[i].cats;
+        draft.buckets[i].cats = mine.indexOf(cat) >= 0 ? mine.filter(c => c !== cat) : mine.concat(cat);
+        draw();
+      }
+    };
+    $('bAdd').onclick = () => { draft.buckets.push({ name: '', type: '轉存', pct: 0, cats: [] }); draw(); };
+    $('bCancel').onclick = closeSheet;
+    $('bSave').onclick = async () => {
+      const payload = { salary: draft.salary, buckets: draft.buckets.map(x => ({ name: x.name.trim(), type: x.type, pct: Number(x.pct), cats: x.type === '消費' ? x.cats : [] })) };
+      await mutate($('bSave'), '儲存中…', async () => {
+        if (!isDemo()) await apiPost(Object.assign({ action: 'saveBudget' }, payload));
+        else { demo.version = { start: state.cycle.start, salary: payload.salary, buckets: payload.buckets }; }
+        toast('預算已更新，本期起生效');
+      });
+    };
+    draw();
+  }
+
+  // ---------- 轉存（投資等） ----------
+  function openTransfer(bucket) {
+    const list = state.transfers.filter(t => t.bucket === bucket);
+    const target = (state.budget.buckets.find(x => x.name === bucket) || {}).limit || 0;
+    openSheet(
+      '<h3 id="sheetTitle">' + esc(bucket) + '</h3>' +
+      '<p class="msg" style="margin:4px 0 8px">本期目標 ' + money(target) + '，已轉 ' + money(sum(list)) + '</p>' +
+      '<div class="tlist">' + (list.length ? list.map(t => '<div class="trow"><span class="num">' + md(t.date) + '　' + money(t.amount) +
+        (t.note ? '　<span style="color:var(--text-3)">' + esc(t.note) + '</span>' : '') + '</span>' +
+        (state.cycle.isCurrent ? '<button type="button" data-del-t="' + esc(t.id) + '">刪除</button>' : '') + '</div>').join('')
+        : '<p class="note-line">本期還沒有紀錄</p>') + '</div>' +
+      (state.cycle.isCurrent
+        ? '<form id="tForm"><div class="row2">' +
+          '<div class="field"><label for="tDate">日期</label><input id="tDate" type="date" value="' + state.today + '" max="' + state.today + '" min="' + state.cycle.start + '" required></div>' +
+          '<div class="field"><label for="tAmt">金額（元）</label><input id="tAmt" type="number" inputmode="numeric" min="1" step="1" required></div></div>' +
+          '<div class="field"><label for="tNote">備註</label><input id="tNote" placeholder="例如：0050 定期定額"></div>' +
+          '<p class="msg err" id="editErr" hidden></p>' +
+          '<button class="btn" id="tSave">記一筆轉存</button></form>'
+        : '<p class="note-line">過去週期只能查看</p>'));
+    const form = $('tForm');
+    if (form) form.onsubmit = async e => {
+      e.preventDefault();
+      const amount = Number($('tAmt').value);
+      if (!Number.isInteger(amount) || amount <= 0) return showErr('金額需為正整數');
+      const item = { date: $('tDate').value, bucket, amount, note: $('tNote').value.trim() };
+      await mutate($('tSave'), '儲存中…', async () => {
+        if (!isDemo()) await apiPost(Object.assign({ action: 'addTransfer' }, item));
+        else demo.transfers.push(Object.assign({ id: 'demo-t' + Date.now() }, item));
+        toast('已記錄');
+      });
+    };
+    $('sheet').querySelectorAll('[data-del-t]').forEach(btn => {
+      btn.onclick = async () => {
+        if (btn.dataset.confirm !== '1') { btn.dataset.confirm = '1'; btn.textContent = '再按一次'; return; }
+        const id = btn.dataset.delT;
+        try {
+          if (!isDemo()) await apiPost({ action: 'deleteTransfer', id });
+          else demo.transfers = demo.transfers.filter(t => t.id !== id);
+          closeSheet(); toast('已刪除'); load();
+        } catch (err) { toast('刪除失敗：' + err.message); }
+      };
+    });
   }
 
   function recRow(r) {
@@ -548,7 +962,7 @@ nav.tabs button[aria-current="page"] { color: var(--accent); font-weight: 600; }
     $('catFilters').innerHTML = ['全部'].concat(state.categories).map(c =>
       '<button class="chip" data-fc="' + esc(c) + '" aria-pressed="' + (state.filterCat === c) + '">' + esc(c) + '</button>').join('');
 
-    // 「待處理」跨月份顯示，其他篩選只看本月
+    // 「待處理」跨週期顯示，其他篩選只看本期
     let list = state.filterStatus === '待處理' ? state.pending.slice() : state.records.slice();
     if (state.filterStatus === '已完成') list = list.filter(r => r.status === '已完成');
     if (state.filterCat !== '全部') list = list.filter(r => r.category === state.filterCat);
@@ -624,7 +1038,7 @@ nav.tabs button[aria-current="page"] { color: var(--accent); font-weight: 600; }
       }
       await mutate($('delBtn'), '刪除中…', async () => {
         if (!isDemo()) await apiPost({ action: 'delete', id: r.id });
-        else state.records = state.records.filter(x => x !== r);
+        else demo.records = (demo.records || []).filter(x => x !== r);
         toast('已刪除');
       });
     };
@@ -638,12 +1052,224 @@ nav.tabs button[aria-current="page"] { color: var(--accent); font-weight: 600; }
     try {
       await fn();
       closeSheet();
-      if (isDemo()) {
-        state.pending = state.records.filter(r => r.status === '待補金額' || r.status === '待確認');
-        render();
-      } else {
-        await load();
+      await load();
+    } catch (e) {
+      showErr(e.message);
+      btn.disabled = false; btn.textContent = old;
+    }
+  }
+
+  // ---------- 資產 ----------
+  const ASSET_TYPES = ['銀行', '現金', '信用卡'];
+  const signed = n => (n < 0 ? '-' : '') + money(Math.abs(n));
+  const demoAssets = { snaps: null };
+
+  function summarize(s) {
+    const assets = s.items.filter(x => x.type !== '信用卡').reduce((a, x) => a + x.amount, 0);
+    const debt = s.items.filter(x => x.type === '信用卡').reduce((a, x) => a + x.amount, 0);
+    return { date: s.date, items: s.items, assets, debt, net: assets - debt };
+  }
+  function demoAssetData() {
+    const today = twToday();
+    if (!demoAssets.snaps) {
+      const base = [['台新銀行', '銀行', 82000], ['郵局', '銀行', 20000], ['錢包', '現金', 2500], ['信用卡', '信用卡', 9800]];
+      demoAssets.snaps = [];
+      for (let k = 5; k >= 1; k--) {
+        const d = addDays(state.cycle ? state.cycle.start : today, -31 * k);
+        demoAssets.snaps.push({ date: d, items: base.map((b, i) => ({ name: b[0], type: b[1],
+          amount: Math.max(0, b[2] + (5 - k) * [4200, 600, -150, 900][i] + (k % 2 ? 1300 : -800) * (i === 0 ? 1 : 0)), note: '' })) });
       }
+    }
+    const snaps = demoAssets.snaps.slice().sort((a, b) => a.date.localeCompare(b.date)).map(summarize);
+    const latest = snaps[snaps.length - 1] || null;
+    const cycleStart = state.cycle ? state.editableFrom || state.cycle.start : today;
+    return { today, snapshots: snaps, latest, prev: snaps[snaps.length - 2] || null,
+      since: latest ? { income: 40000, expense: 3630, transfer: 5000, days: daysBetween(latest.date, today) } : null,
+      remind: !latest || latest.date < cycleStart, cycleStart, types: ASSET_TYPES };
+  }
+
+  async function loadAssets() {
+    try {
+      state.assets = isDemo() ? demoAssetData() : await apiGet({ action: 'assets' });
+    } catch (e) {
+      toast('讀取資產失敗：' + e.message);
+      return;
+    }
+    renderAssets();
+  }
+
+  function renderAssets() {
+    const a = state.assets;
+    if (!a) return;
+    const L = a.latest, P = a.prev;
+    if (!L) {
+      $('netWorth').textContent = '-';
+      $('netCmp').textContent = '';
+      $('netWhen').textContent = '還沒有盤點紀錄';
+      $('acctList').innerHTML = '<div class="empty"><b>先盤點一次</b>按右上「盤點」輸入各帳戶目前的實際餘額</div>';
+    } else {
+      $('netWorth').textContent = signed(L.net);
+      if (P) {
+        const d = L.net - P.net;
+        $('netCmp').innerHTML = '比上次盤點 ' + (d === 0 ? '<b>無變化</b>' : '<b class="' + (d > 0 ? 'down' : 'up') + '">' + (d > 0 ? '增加 ' : '減少 ') + money(Math.abs(d)) + '</b>') + '（' + md(P.date) + ' → ' + md(L.date) + '）';
+      } else {
+        $('netCmp').textContent = '第一次盤點';
+      }
+      $('netWhen').textContent = '資產 ' + money(L.assets) + '－信用卡 ' + money(L.debt) + '｜' + L.date + ' 盤點';
+      const prevOf = name => P && P.items.find(x => x.name === name);
+      const row = x => {
+        const p0 = prevOf(x.name);
+        const diff = p0 ? x.amount - p0.amount : null;
+        const shownDiff = diff === null ? '新帳戶' : diff === 0 ? '無變化' : (x.type === '信用卡' ? (diff > 0 ? '欠款增加 ' : '欠款減少 ') : (diff > 0 ? '+' : '-')) + money(Math.abs(diff));
+        return '<div class="acct' + (x.type === '信用卡' ? ' debt' : '') + '"><span class="nm">' + esc(x.name) + '</span>' +
+          '<span class="am num">' + (x.type === '信用卡' ? '-' : '') + money(x.amount) + '</span>' +
+          '<span class="tp">' + esc(x.type) + (x.note ? '・' + esc(x.note) : '') + '</span><span class="df num">' + shownDiff + '</span></div>';
+      };
+      const order = t => ASSET_TYPES.indexOf(t);
+      const items = L.items.slice().sort((x, y) => order(x.type) - order(y.type) || y.amount - x.amount);
+      $('acctList').innerHTML = items.map(row).join('') +
+        '<div class="acct total"><span class="nm">淨資產</span><span class="am num">' + signed(L.net) + '</span></div>';
+    }
+
+    // 提醒
+    $('assetRemind').hidden = !a.remind;
+    $('assetRemindText').textContent = L ? '這個發薪週期還沒盤點，點這裡更新餘額' : '還沒有任何盤點，點這裡開始';
+
+    // 盤點後的記帳流量（參考）
+    if (L && a.since && a.since.days > 0) {
+      $('sinceNote').hidden = false;
+      $('sinceNote').innerHTML = '上次盤點後 ' + a.since.days + ' 天，記帳記錄了：收入 ' + money(a.since.income) + '、支出 ' + money(a.since.expense) +
+        '、轉存 ' + money(a.since.transfer) + '<br><span style="color:var(--text-3)">只是參考，淨資產以盤點的實際餘額為準</span>';
+    } else {
+      $('sinceNote').hidden = true;
+    }
+
+    // 趨勢
+    const pts = a.snapshots;
+    if (pts.length < 2) {
+      $('trendSvg').innerHTML = '';
+      $('trendSvg').style.height = '0px';
+      $('trendAxis').innerHTML = '<span>盤點兩次以上就會出現趨勢線</span>';
+    } else {
+      $('trendSvg').style.height = '';
+      const W = 300, H = 120, pad2 = 8;
+      const t0 = Date.parse(pts[0].date), t1 = Date.parse(pts[pts.length - 1].date);
+      const vals = pts.map(x => x.net), lo = Math.min(...vals), hi = Math.max(...vals);
+      const span = hi - lo || Math.abs(hi) || 1;
+      const X = d => pad2 + (Date.parse(d) - t0) / (t1 - t0 || 1) * (W - 2 * pad2);
+      const Y = v => pad2 + (1 - (v - lo + span * .1) / (span * 1.2)) * (H - 2 * pad2);
+      const path = pts.map((x, i) => (i ? 'L' : 'M') + X(x.date).toFixed(1) + ' ' + Y(x.net).toFixed(1)).join('');
+      $('trendSvg').setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+      $('trendSvg').setAttribute('preserveAspectRatio', 'none');
+      $('trendSvg').innerHTML = '<path d="' + path + '" fill="none" stroke="var(--accent)" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>' +
+        pts.map(x => '<circle cx="' + X(x.date).toFixed(1) + '" cy="' + Y(x.net).toFixed(1) + '" r="3" fill="var(--accent)" vector-effect="non-scaling-stroke"><title>' + x.date + ' ' + signed(x.net) + '</title></circle>').join('');
+      $('trendAxis').innerHTML = '<span>' + md(pts[0].date) + '　' + signed(pts[0].net) + '</span><span>' + md(pts[pts.length - 1].date) + '　' + signed(pts[pts.length - 1].net) + '</span>';
+    }
+
+    // 盤點紀錄
+    $('snapList').innerHTML = pts.length
+      ? pts.slice().reverse().map(x => '<button class="snap-row" data-snap="' + x.date + '"><span class="num">' + x.date + '（' + weekday(x.date) + '）</span><span class="num">' + signed(x.net) + '</span></button>').join('')
+      : '<div class="empty">沒有紀錄</div>';
+  }
+
+  function openSnapshot(date) {
+    const a = state.assets || {};
+    const existing = date && (a.snapshots || []).find(x => x.date === date);
+    const src = existing || a.latest;
+    const draft = {
+      date: existing ? existing.date : state.today,
+      items: src ? src.items.map(x => ({ name: x.name, type: x.type, amount: existing ? x.amount : x.amount, note: x.note || '' }))
+        : [{ name: '銀行', type: '銀行', amount: 0, note: '' }, { name: '錢包', type: '現金', amount: 0, note: '' }, { name: '信用卡', type: '信用卡', amount: 0, note: '' }],
+    };
+    function totals() {
+      const assets = draft.items.filter(x => x.type !== '信用卡').reduce((s, x) => s + (Number(x.amount) || 0), 0);
+      const debt = draft.items.filter(x => x.type === '信用卡').reduce((s, x) => s + (Number(x.amount) || 0), 0);
+      return { assets, debt, net: assets - debt };
+    }
+    function errs() {
+      const e = [], names = {};
+      if (!draft.items.length) e.push('至少要有一個帳戶');
+      draft.items.forEach((x, i) => {
+        const n = x.name.trim();
+        if (!n) e.push('第 ' + (i + 1) + ' 個帳戶沒有名稱'); else if (names[n]) e.push('「' + n + '」重複');
+        names[n] = 1;
+        if (!(Number.isInteger(Number(x.amount)) && Number(x.amount) >= 0)) e.push('「' + (n || '帳戶') + '」金額需為 0 以上的整數');
+      });
+      if (draft.date > state.today) e.push('盤點日不可晚於今天');
+      return e;
+    }
+    function refresh() {
+      const t = totals(), e = errs();
+      $('sTotal').innerHTML = '<span>淨資產</span><b class="num">' + signed(t.net) + '</b>';
+      $('sErr').hidden = !e.length; $('sErr').textContent = e.join('；'); $('sSave').disabled = !!e.length;
+    }
+    function draw() {
+      $('sRows').innerHTML = draft.items.map((x, i) => '<div class="sedit" data-i="' + i + '">' +
+        '<div class="field"><label>帳戶</label><input data-k="name" value="' + esc(x.name) + '" maxlength="20"></div>' +
+        '<div class="field"><label>類型</label><select data-k="type">' + ASSET_TYPES.map(t => '<option' + (t === x.type ? ' selected' : '') + '>' + t + '</option>').join('') + '</select></div>' +
+        '<div class="field"><label>' + (x.type === '信用卡' ? '未繳金額' : '餘額') + '</label><input data-k="amount" type="number" inputmode="numeric" min="0" step="1" value="' + x.amount + '"></div>' +
+        '<button type="button" class="rm" data-rm="' + i + '" aria-label="刪除' + esc(x.name) + '">×</button></div>').join('');
+      refresh();
+    }
+    openSheet(
+      '<h3 id="sheetTitle">' + (existing ? '修改盤點' : '盤點資產') + '</h3>' +
+      '<p class="msg" style="margin:4px 0 14px">輸入銀行 App、錢包裡的實際金額；信用卡填目前未繳的金額（正數）。' + (existing ? '' : '已帶入上次的數字，改有變動的就好。') + '</p>' +
+      '<div class="field"><label for="sDate">盤點日</label><input id="sDate" type="date" value="' + draft.date + '" max="' + state.today + '"' + (existing ? ' disabled' : '') + '></div>' +
+      '<div id="sRows"></div>' +
+      '<button type="button" class="btn ghost" id="sAdd" style="margin-bottom:6px">＋ 新增帳戶</button>' +
+      '<div class="sumline" id="sTotal"></div>' +
+      '<p class="msg err" id="sErr" hidden></p><p class="msg err" id="editErr" hidden></p>' +
+      '<div class="actions">' + (existing ? '<button type="button" class="btn danger" id="sDel">刪除</button>' : '<button type="button" class="btn ghost" id="sCancel">取消</button>') +
+      '<button type="button" class="btn" id="sSave">儲存</button></div>');
+
+    $('sDate').oninput = e => { draft.date = e.target.value; refresh(); };
+    $('sRows').oninput = e => {
+      const box = e.target.closest('.sedit'); if (!box) return;
+      const x = draft.items[+box.dataset.i], k = e.target.dataset.k;
+      if (k === 'name') x.name = e.target.value;
+      if (k === 'amount') x.amount = e.target.value === '' ? NaN : Number(e.target.value);
+      refresh();
+    };
+    $('sRows').onchange = e => {
+      if (e.target.dataset.k !== 'type') return;
+      draft.items[+e.target.closest('.sedit').dataset.i].type = e.target.value;
+      draw();
+    };
+    $('sRows').onclick = e => {
+      const rm = e.target.closest('[data-rm]');
+      if (rm) { draft.items.splice(+rm.dataset.rm, 1); draw(); }
+    };
+    $('sAdd').onclick = () => { draft.items.push({ name: '', type: '銀行', amount: 0, note: '' }); draw(); };
+    if ($('sCancel')) $('sCancel').onclick = closeSheet;
+    $('sSave').onclick = async () => {
+      const items = draft.items.map(x => ({ name: x.name.trim(), type: x.type, amount: Number(x.amount), note: x.note }));
+      await mutateAssets($('sSave'), '儲存中…', async () => {
+        if (!isDemo()) await apiPost({ action: 'saveSnapshot', date: draft.date, items });
+        else {
+          demoAssets.snaps = demoAssets.snaps.filter(x => x.date !== draft.date);
+          demoAssets.snaps.push({ date: draft.date, items });
+        }
+        toast('已儲存盤點');
+      });
+    };
+    if ($('sDel')) $('sDel').onclick = async () => {
+      if ($('sDel').dataset.confirm !== '1') { $('sDel').dataset.confirm = '1'; $('sDel').textContent = '再按一次'; return; }
+      await mutateAssets($('sDel'), '刪除中…', async () => {
+        if (!isDemo()) await apiPost({ action: 'deleteSnapshot', date: draft.date });
+        else demoAssets.snaps = demoAssets.snaps.filter(x => x.date !== draft.date);
+        toast('已刪除');
+      });
+    };
+    draw();
+  }
+
+  async function mutateAssets(btn, label, fn) {
+    const old = btn.textContent;
+    btn.disabled = true; btn.textContent = label;
+    try {
+      await fn();
+      closeSheet();
+      await loadAssets();
     } catch (e) {
       showErr(e.message);
       btn.disabled = false; btn.textContent = old;
@@ -716,6 +1342,7 @@ nav.tabs button[aria-current="page"] { color: var(--accent); font-weight: 600; }
         await apiGet({ action: 'ping' });
         closeSheet();
         toast('連線成功');
+        state.assets = null;
         load();
       } catch (err) {
         store.set('url', old.url); store.set('read', old.read); store.set('write', old.write);
@@ -727,6 +1354,7 @@ nav.tabs button[aria-current="page"] { color: var(--accent); font-weight: 600; }
       ['url', 'read', 'write'].forEach(k => store.set(k, ''));
       closeSheet();
       toast('已清除，改為示範資料');
+      state.assets = null;
       load();
     };
   }
@@ -734,7 +1362,9 @@ nav.tabs button[aria-current="page"] { color: var(--accent); font-weight: 600; }
   // ---------- 事件 ----------
   function setView(v) {
     state.view = v;
-    ['overview', 'list', 'add'].forEach(x => { $('view-' + x).hidden = x !== v; });
+    ['overview', 'list', 'assets', 'add'].forEach(x => { $('view-' + x).hidden = x !== v; });
+    if (v === 'assets' && !state.assets) loadAssets();
+    document.querySelector('.month').style.visibility = v === 'assets' ? 'hidden' : '';
     document.querySelectorAll('nav.tabs button').forEach(b => {
       if (b.dataset.view === v) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
     });
@@ -748,22 +1378,29 @@ nav.tabs button[aria-current="page"] { color: var(--accent); font-weight: 600; }
   document.body.addEventListener('click', e => {
     const rec = e.target.closest('.rec');
     if (rec) return openEdit(rec.dataset.id);
+    const sn = e.target.closest('[data-snap]');
+    if (sn) return openSnapshot(sn.dataset.snap);
+    const tr = e.target.closest('[data-transfer]');
+    if (tr) return openTransfer(tr.dataset.transfer);
     const fs = e.target.closest('[data-fs]');
     if (fs) { state.filterStatus = fs.dataset.fs; return renderList(); }
     const fc = e.target.closest('[data-fc]');
     if (fc) { state.filterCat = fc.dataset.fc; return renderList(); }
   });
   $('pendingBanner').onclick = () => { state.filterStatus = '待處理'; state.filterCat = '全部'; renderList(); setView('list'); };
-  $('prevM').onclick = () => { state.month = shiftMonth(state.month, -1); load(); };
-  $('nextM').onclick = () => { if (state.month < state.today.slice(0, 7)) { state.month = shiftMonth(state.month, 1); load(); } };
-  $('refreshBtn').onclick = () => load();
+  $('prevM').onclick = () => { if (state.cycle) { state.anchor = state.cycle.prevStart; load(); } };
+  $('nextM').onclick = () => { if (state.cycle && state.cycle.nextStart <= state.today) { state.anchor = state.cycle.nextStart; load(); } };
+  $('budgetEditBtn').onclick = () => { if (state.version) openBudgetEditor(); };
+  $('refreshBtn').onclick = () => { load(); if (state.view === 'assets') loadAssets(); };
+  $('snapBtn').onclick = () => openSnapshot('');
+  $('assetRemind').onclick = () => openSnapshot('');
   $('settingsBtn').onclick = openSettings;
   $('sheetBg').onclick = closeSheet;
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
 
   // ---------- 啟動 ----------
   state.today = twToday();
-  state.month = state.today.slice(0, 7);
+  state.anchor = state.today;
   if (isDemo()) setTimeout(() => toast('目前是示範資料，按右上角設定連線'), 600);
   load();
 })();
