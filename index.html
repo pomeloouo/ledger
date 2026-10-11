@@ -113,11 +113,11 @@ main section[hidden] { display: none; }
 .pending-banner span { flex: 1; }
 .pending-banner b { color: var(--warn); }
 
-.cats { display: grid; gap: 12px; }
-.cat-row { display: grid; grid-template-columns: 72px 1fr auto; align-items: center; gap: 10px; font-size: 14px; }
-.cat-row .bar { height: 10px; border-radius: 5px; background: var(--accent); min-width: 3px; }
-.cat-row .bar.dim { opacity: .45; }
-.cat-row .v { color: var(--text-2); text-align: right; min-width: 84px; }
+/* 預算類別展開後的分類明細 */
+.cat-list { grid-column: 1 / -1; display: grid; gap: 8px; margin-top: 6px; padding-top: 10px; border-top: 1px dashed var(--line); }
+.cat-row { display: grid; grid-template-columns: 72px 1fr auto; align-items: center; gap: 10px; font-size: 13px; color: var(--text-2); }
+.cat-row .bar { height: 8px; border-radius: 4px; background: var(--text-3); opacity: .55; min-width: 3px; }
+.cat-row .v { text-align: right; min-width: 72px; }
 
 .daily { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 12px 8px; }
 .daily svg { display: block; width: 100%; height: 140px; }
@@ -183,6 +183,11 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .card .sub { font-size: 13px; color: var(--text-2); margin-top: 2px; }
 .card.warn { border-color: var(--warn); }
 .card .note { font-size: 13px; color: var(--warn); margin-top: 6px; }
+.card .undo { margin-top: 10px; height: 36px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--line); background: transparent; color: var(--text-2); font-size: 13px; }
+.card.undone { opacity: .5; }
+.last-line { font-size: 13px; color: var(--text-2); background: var(--surface-2); border-radius: 10px; padding: 8px 12px; }
+.pick { display: flex; flex-wrap: wrap; gap: 6px; }
+.pick .chip { height: 36px; font-size: 14px; }
 .msg { font-size: 14px; color: var(--text-2); }
 .msg.err { color: var(--danger); }
 
@@ -347,7 +352,7 @@ button.bud:active { background: var(--surface-2); }
         <div class="stat"><span>今天還能花</span><b class="num" id="todayLeft">-</b><small id="todayLeftNote">&nbsp;</small></div>
         <div class="stat"><span>今日已花</span><b class="num" id="todayAmt">-</b><small>&nbsp;</small></div>
         <button class="stat stat-btn" id="incomeBtn"><span>本月收入 ›</span><b class="num" id="incomeAmt">-</b><small id="incomeNote">&nbsp;</small></button>
-        <div class="stat"><span>本月結餘</span><b class="num" id="balanceAmt">-</b><small>收入－支出－轉存</small></div>
+        <div class="stat"><span>本月剩餘</span><b class="num" id="balanceAmt">-</b><small id="balanceNote">&nbsp;</small></div>
       </div>
       <button class="pending-banner" id="pendingBanner" hidden>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
@@ -363,10 +368,6 @@ button.bud:active { background: var(--surface-2); }
       <div class="block-head"><h2>預算</h2><button class="link-btn" id="budgetEditBtn">調整</button></div>
       <div class="budget" id="budget"></div>
       <p class="note-line" id="budgetNote"></p>
-    </div>
-    <div class="block">
-      <h2>分類</h2>
-      <div class="cats" id="cats"></div>
     </div>
     <div class="block">
       <h2>每日支出</h2>
@@ -420,9 +421,11 @@ button.bud:active { background: var(--surface-2); }
         <label for="addText">口語輸入</label>
         <textarea id="addText" placeholder="晚餐雞腿飯一百二" autocomplete="off"></textarea>
         <span class="help">一句可以記多筆，也可以輸入「剛剛那筆改成 150」修改上一筆。</span>
+        <span class="last-line num" id="lastLine" hidden></span>
       </div>
       <div class="examples" id="examples"></div>
       <button class="btn" id="addBtn" type="submit">送出</button>
+      <button type="button" class="btn ghost" id="manualBtn" style="margin-top:10px">不用 AI，手動輸入</button>
     </form>
     <div class="result" id="addResult"></div>
   </section>
@@ -470,6 +473,7 @@ button.bud:active { background: var(--surface-2); }
     incomes: [], transfers: [], budget: null, version: null, schedule: null, holidayWarning: '',
     categories: DEFAULT_CATS, payments: DEFAULT_PAYS,
     filterStatus: '全部', filterCat: '全部',
+    expanded: new Set(), last: null,
     loading: false,
   };
 
@@ -489,6 +493,18 @@ button.bud:active { background: var(--surface-2); }
   const sum = list => list.reduce((s, r) => s + (r.amount || 0), 0);
   const weekday = d => '日一二三四五六'[new Date(d + 'T00:00:00').getDay()];
 
+  // 刪除類按鈕：第一次按變成「再按一次」，3 秒內沒按就恢復原樣
+  function confirmTwice(btn) {
+    if (btn.dataset.confirm === '1') return true;
+    const old = btn.textContent;
+    btn.dataset.confirm = '1';
+    btn.textContent = '再按一次';
+    setTimeout(() => {
+      if (btn.dataset.confirm === '1' && !btn.disabled) { btn.dataset.confirm = ''; btn.textContent = old; }
+    }, 3000);
+    return false;
+  }
+
   let toastTimer;
   function toast(msg) {
     const t = $('toast');
@@ -499,12 +515,16 @@ button.bud:active { background: var(--surface-2); }
   }
 
   // ---------- API ----------
+  // 讀取也用 POST：Token 放在內容裡，不會出現在網址與瀏覽紀錄
   async function apiGet(params) {
     const c = cfg();
-    const q = new URLSearchParams(Object.assign({ token: c.read || c.write }, params));
-    const res = await fetch(c.url + '?' + q.toString(), { redirect: 'follow' });
+    const res = await fetch(c.url, {
+      method: 'POST', redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(Object.assign({ token: c.read || c.write }, params)),
+    });
     const data = await res.json();
-    if (!data.ok) throw new Error(data.error === 'unauthorized' ? 'Token 錯誤' : data.error);
+    if (!data.ok) throw new Error(data.error === 'unauthorized' ? 'Token 錯誤（若 Token 沒錯，代表後端還是舊版，請重新部署「新版本」）' : data.error);
     return data;
   }
 
@@ -630,6 +650,7 @@ button.bud:active { background: var(--surface-2); }
       version: demo.version, editableFrom: demoCycle(today).start,
       schedule: { salary: sch(nextOf(10)), bonus: sch(nextOf(25)), card: Object.assign(sch(cardDate), { remind: daysBetween(today, cardDate) <= 3 }) },
       holidayWarning: '', categories: DEFAULT_CATS, payments: DEFAULT_PAYS,
+      last: (demo.records || records).slice(-1)[0] || null,
     };
   }
 
@@ -646,6 +667,7 @@ button.bud:active { background: var(--surface-2); }
         incomes: data.incomes || [], transfers: data.transfers || [], budget: data.budget, version: data.version,
         editableFrom: data.editableFrom, schedule: data.schedule, holidayWarning: data.holidayWarning || '',
         categories: data.categories || DEFAULT_CATS, payments: data.payments || DEFAULT_PAYS,
+        last: data.last || null,
       });
       state.anchor = data.cycle.start;
     } catch (e) {
@@ -665,6 +687,14 @@ button.bud:active { background: var(--surface-2); }
     $('nextM').style.opacity = $('nextM').disabled ? .3 : 1;
     renderOverview();
     renderList();
+    renderLastLine();
+  }
+
+  // 「剛剛那筆改成…」會改到的那一筆，先讓使用者看到
+  function renderLastLine() {
+    const l = state.last;
+    $('lastLine').hidden = !l;
+    if (l) $('lastLine').textContent = '上一筆：' + l.item + ' ' + (l.amount == null ? '（缺金額）' : money(l.amount)) + '・' + l.category + '・' + md(l.date);
   }
 
   function renderOverview() {
@@ -688,30 +718,44 @@ button.bud:active { background: var(--surface-2); }
       $('cmp').textContent = '上個月沒有資料可比較';
     }
 
-    // 今天還能花：消費型預算剩餘總額 ÷ 本月剩餘天數
+    // 今天還能花：今天開始時的每日額度 − 今天已花。
+    // 今天開始時的剩餘額度 = 現在剩餘 + 今天已花，再平均到剩餘天數（含今天）。
     const spendB = b ? b.buckets.filter(x => x.type === '消費') : [];
     const leftAll = spendB.reduce((s, x) => s + (x.limit - x.used), 0) - (b ? b.unassigned.used : 0);
+    const todaySpent = c.isCurrent ? sum(recs.filter(r => r.date === state.today)) : 0;
+    $('todayLeft').className = 'num';
     if (b && b.noBase) {
       $('todayLeft').textContent = '-';
-      $('todayLeft').className = 'num';
       $('todayLeftNote').textContent = '上月沒有收入紀錄';
     } else if (c.isCurrent && c.daysLeft) {
-      const perDay = Math.floor(Math.max(leftAll, 0) / c.daysLeft);
-      $('todayLeft').textContent = money(perDay);
-      $('todayLeft').className = 'num' + (leftAll < 0 ? ' up' : '');
-      $('todayLeftNote').textContent = leftAll < 0 ? '消費預算已超支 ' + money(-leftAll) : '剩 ' + c.daysLeft + ' 天，共 ' + money(leftAll);
+      const dayBudget = Math.floor(Math.max(leftAll + todaySpent, 0) / c.daysLeft);
+      const canSpend = dayBudget - todaySpent;
+      $('todayLeft').textContent = signed(canSpend);
+      if (canSpend < 0) $('todayLeft').className = 'num up';
+      $('todayLeftNote').textContent = leftAll < 0 ? '本月消費預算已超支 ' + money(-leftAll)
+        : canSpend < 0 ? '今天超出 ' + money(-canSpend) + '，之後每天會變少'
+        : '今天額度 ' + money(dayBudget) + '，剩 ' + c.daysLeft + ' 天';
     } else {
       $('todayLeft').textContent = '-';
       $('todayLeftNote').textContent = '過去月份';
     }
-    $('todayAmt').textContent = c.isCurrent ? money(sum(recs.filter(r => r.date === state.today))) : '-';
+    $('todayAmt').textContent = c.isCurrent ? money(todaySpent) : '-';
     const incomeSum = sum(state.incomes);
     const transferSum = sum(state.transfers);
     $('incomeAmt').textContent = money(incomeSum);
-    $('incomeNote').textContent = state.incomes.length ? state.incomes.length + ' 筆，點這裡查看' : (c.isCurrent ? '還沒輸入，點這裡新增' : '沒有紀錄');
-    const bal = incomeSum - total - transferSum;
-    $('balanceAmt').textContent = (bal < 0 ? '-' : '') + money(Math.abs(bal));
-    $('balanceAmt').className = 'num' + (bal < 0 ? ' up' : '');
+    $('incomeNote').textContent = (state.incomes.length ? state.incomes.length + ' 筆' : (c.isCurrent ? '還沒輸入' : '沒有紀錄')) +
+      '，成為 ' + +c.nextStart.slice(5, 7) + ' 月額度';
+    // 本月剩餘：和預算同一筆錢（上月收入），不用本月收入，避免發薪前一直是負數
+    if (b && !b.noBase) {
+      const bal = b.base - total - transferSum;
+      $('balanceAmt').textContent = signed(bal);
+      $('balanceAmt').className = 'num' + (bal < 0 ? ' up' : '');
+      $('balanceNote').textContent = +b.baseMonth.slice(5, 7) + ' 月收入－支出－轉存';
+    } else {
+      $('balanceAmt').textContent = '-';
+      $('balanceAmt').className = 'num';
+      $('balanceNote').textContent = '上月沒有收入紀錄';
+    }
 
     // 待處理
     const need = state.pending.filter(r => r.status === '待補金額').length;
@@ -722,17 +766,6 @@ button.bud:active { background: var(--surface-2); }
 
     renderSchedule();
     renderBudget();
-
-    // 分類
-    const byCat = {};
-    recs.forEach(r => { byCat[r.category] = (byCat[r.category] || 0) + (r.amount || 0); });
-    const cats = Object.entries(byCat).filter(e => e[1] > 0).sort((a, b2) => b2[1] - a[1]);
-    const max = cats.length ? cats[0][1] : 1;
-    $('cats').innerHTML = cats.length ? cats.map(([cat, v], i) =>
-      '<div class="cat-row"><span>' + esc(cat) + '</span>' +
-      '<div><div class="bar' + (i ? ' dim' : '') + '" style="width:' + (v / max * 100).toFixed(1) + '%"></div></div>' +
-      '<span class="v num">' + money(v) + ' · ' + Math.round(v / total * 100) + '%</span></div>').join('')
-      : '<div class="empty"><b>這一期還沒有紀錄</b>對 Gemini 說「新增待辦，晚餐雞腿飯一百二」開始記帳</div>';
 
     // 每日長條（整個月）
     const n = c.days;
@@ -752,7 +785,21 @@ button.bud:active { background: var(--surface-2); }
 
     // 最近
     const recent = [...recs].sort((a, b2) => (b2.created || '').localeCompare(a.created || '')).slice(0, 5);
-    $('recent').innerHTML = recent.length ? '<div class="list">' + recent.map(recRow).join('') + '</div>' : '';
+    $('recent').innerHTML = recent.length ? '<div class="list">' + recent.map(recRow).join('') + '</div>'
+      : '<div class="empty"><b>這個月還沒有紀錄</b>對 Gemini 說「新增待辦，晚餐雞腿飯一百二」開始記帳</div>';
+  }
+
+  // 預算類別展開後的各分類金額（取代原本獨立的「分類」區塊）
+  function catBreakdown(cats) {
+    const recs = state.records;
+    const rows = cats.map(cat => [cat, sum(recs.filter(r => r.category === cat))])
+      .filter(x => x[1] > 0).sort((a, b2) => b2[1] - a[1]);
+    if (!rows.length) return '<span class="cat-list"><span class="cat-row"><span>這個月還沒有支出</span></span></span>';
+    const max = rows[0][1];
+    return '<span class="cat-list">' + rows.map(([cat, v]) =>
+      '<span class="cat-row"><span>' + esc(cat) + '</span>' +
+      '<span><span class="bar" style="display:block;width:' + (v / max * 100).toFixed(1) + '%"></span></span>' +
+      '<span class="v num">' + money(v) + '</span></span>').join('') + '</span>';
   }
 
   function renderSchedule() {
@@ -770,12 +817,18 @@ button.bud:active { background: var(--surface-2); }
     const b = state.budget;
     if (!b) { $('budget').innerHTML = ''; return; }
     const c = state.cycle;
+    // 消費型類別：點一下展開，看裡面各分類花了多少
+    const spendRow = (key, cls, inner, cats) => {
+      const open = state.expanded.has(key);
+      return '<button class="bud' + cls + '" data-bucket="' + esc(key) + '" aria-expanded="' + open + '">' + inner +
+        (open ? catBreakdown(cats) : '') + '</button>';
+    };
     const rows = b.buckets.map(x => {
       if (b.noBase) {
         const inner = '<span class="name">' + esc(x.name) + '<small>' + x.pct + '%・' + (x.type === '轉存' ? '轉存' : esc(x.cats.join('、'))) + '</small></span>' +
           '<span class="fig num">' + money(x.used) + '</span>' +
-          '<span class="sub">' + (x.type === '轉存' ? '已轉存，點這裡記一筆' : '已花') + '</span>';
-        return x.type === '轉存' ? '<button class="bud" data-transfer="' + esc(x.name) + '">' + inner + '</button>' : '<div class="bud">' + inner + '</div>';
+          '<span class="sub">' + (x.type === '轉存' ? '已轉存，點這裡記一筆' : '已花・點這裡看各分類') + '</span>';
+        return x.type === '轉存' ? '<button class="bud" data-transfer="' + esc(x.name) + '">' + inner + '</button>' : spendRow(x.name, '', inner, x.cats);
       }
       const ratio = x.limit ? x.used / x.limit : (x.used ? 2 : 0);
       if (x.type === '轉存') {
@@ -789,15 +842,19 @@ button.bud:active { background: var(--surface-2); }
       const left = x.limit - x.used;
       const cls = ratio >= 1 ? ' over' : ratio >= .8 ? ' warn' : '';
       const perDay = c.isCurrent && c.daysLeft && left > 0 ? '，每天約 ' + money(Math.floor(left / c.daysLeft)) : '';
-      return '<div class="bud' + cls + '">' +
+      return spendRow(x.name, cls,
         '<span class="name">' + esc(x.name) + '<small>' + x.pct + '%・' + esc(x.cats.join('、')) + '</small></span>' +
         '<span class="fig num">' + money(x.used) + '<small> / ' + money(x.limit) + '</small></span>' +
         '<span class="track"><span class="fill" style="display:block;width:' + Math.min(ratio * 100, 100).toFixed(1) + '%"></span></span>' +
-        '<span class="sub">' + (left < 0 ? '超支 <b>' + money(-left) + '</b>' : '剩 <b>' + money(left) + '</b>' + perDay) + '</span></div>';
+        '<span class="sub">' + (left < 0 ? '超支 <b>' + money(-left) + '</b>' : '剩 <b>' + money(left) + '</b>' + perDay) + '</span>', x.cats);
     });
     if (b.unassigned.used > 0) {
-      rows.push('<div class="bud over"><span class="name">未分配<small>' + esc(b.unassigned.cats.join('、')) + '</small></span>' +
-        '<span class="fig num">' + money(b.unassigned.used) + '</span><span class="sub">這些分類沒有歸屬任何預算，按「調整」指定</span></div>');
+      // 帳目裡出現、但不在任何類別的分類（含已改名或刪除的舊分類）
+      const owned = {};
+      b.buckets.forEach(x => x.cats.forEach(cat => { owned[cat] = 1; }));
+      const loose = [...new Set(state.records.map(r => r.category))].filter(cat => !owned[cat]);
+      rows.push(spendRow('__unassigned__', ' over', '<span class="name">未分配<small>' + esc(loose.join('、')) + '</small></span>' +
+        '<span class="fig num">' + money(b.unassigned.used) + '</span><span class="sub">這些分類沒有歸屬任何預算，按「調整」指定</span>', loose));
     }
     $('budget').innerHTML = rows.join('');
     const notes = [];
@@ -813,7 +870,8 @@ button.bud:active { background: var(--surface-2); }
   // ---------- 預算設定面板 ----------
   function openBudgetEditor() {
     const v = state.version;
-    const draft = { buckets: v.buckets.map(x => ({ name: x.name, type: x.type, pct: x.pct, cats: x.cats.slice() })) };
+    // from：原本的名稱，改名時後端用來把本月起的轉存紀錄一起改名
+    const draft = { buckets: v.buckets.map(x => ({ name: x.name, from: x.name, type: x.type, pct: x.pct, cats: x.cats.slice() })) };
     const base = state.budget && !state.budget.noBase ? state.budget.base : 0;
     const estText = pct => base ? '本月約 ' + money(Math.round(base * (Number(pct) || 0) / 100)) : '';
 
@@ -912,7 +970,7 @@ button.bud:active { background: var(--surface-2); }
     $('bAdd').onclick = () => { draft.buckets.push({ name: '', type: '轉存', pct: 0, cats: [] }); draw(); };
     $('bCancel').onclick = closeSheet;
     $('bSave').onclick = async () => {
-      const payload = { buckets: draft.buckets.map(x => ({ name: x.name.trim(), type: x.type, pct: Number(x.pct), cats: x.type === '消費' ? x.cats : [] })) };
+      const payload = { buckets: draft.buckets.map(x => ({ name: x.name.trim(), from: x.from || '', type: x.type, pct: Number(x.pct), cats: x.type === '消費' ? x.cats : [] })) };
       await mutate($('bSave'), '儲存中…', async () => {
         if (!isDemo()) await apiPost(Object.assign({ action: 'saveBudget' }, payload));
         else { demo.version = { start: state.cycle.start, buckets: payload.buckets }; }
@@ -965,7 +1023,7 @@ button.bud:active { background: var(--surface-2); }
       });
     };
     if ($('iDel')) $('iDel').onclick = async () => {
-      if ($('iDel').dataset.confirm !== '1') { $('iDel').dataset.confirm = '1'; $('iDel').textContent = '再按一次'; return; }
+      if (!confirmTwice($('iDel'))) return;
       await mutate($('iDel'), '刪除中…', async () => {
         if (!isDemo()) await apiPost({ action: 'deleteIncome', id: editing.id });
         else demo.incomes = demo.incomes.filter(x => x.id !== editing.id);
@@ -1007,7 +1065,7 @@ button.bud:active { background: var(--surface-2); }
     };
     $('sheet').querySelectorAll('[data-del-t]').forEach(btn => {
       btn.onclick = async () => {
-        if (btn.dataset.confirm !== '1') { btn.dataset.confirm = '1'; btn.textContent = '再按一次'; return; }
+        if (!confirmTwice(btn)) return;
         const id = btn.dataset.delT;
         try {
           if (!isDemo()) await apiPost({ action: 'deleteTransfer', id });
@@ -1104,11 +1162,7 @@ button.bud:active { background: var(--surface-2); }
       });
     };
     $('delBtn').onclick = async () => {
-      if ($('delBtn').dataset.confirm !== '1') {
-        $('delBtn').dataset.confirm = '1';
-        $('delBtn').textContent = '再按一次';
-        return;
-      }
+      if (!confirmTwice($('delBtn'))) return;
       await mutate($('delBtn'), '刪除中…', async () => {
         if (!isDemo()) await apiPost({ action: 'delete', id: r.id });
         else demo.records = (demo.records || []).filter(x => x !== r);
@@ -1157,7 +1211,7 @@ button.bud:active { background: var(--surface-2); }
     const latest = snaps[snaps.length - 1] || null;
     const cycleStart = state.cycle ? state.editableFrom || state.cycle.start : today;
     return { today, snapshots: snaps, latest, prev: snaps[snaps.length - 2] || null,
-      since: latest ? { income: 40000, expense: 3630, transfer: 5000, days: daysBetween(latest.date, today) } : null,
+      since: latest ? { income: 40000, expense: 2130, cardExpense: 1500, transfer: 5000, days: daysBetween(latest.date, today) } : null,
       remind: !latest || latest.date < cycleStart, cycleStart, types: ASSET_TYPES };
   }
 
@@ -1212,8 +1266,10 @@ button.bud:active { background: var(--surface-2); }
     // 盤點後的記帳流量（參考）
     if (L && a.since && a.since.days > 0) {
       $('sinceNote').hidden = false;
+      const card = a.since.cardExpense || 0;
       $('sinceNote').innerHTML = '上次盤點後 ' + a.since.days + ' 天，記帳記錄了：收入 ' + money(a.since.income) + '、支出 ' + money(a.since.expense) +
-        '、轉存 ' + money(a.since.transfer) + '<br><span style="color:var(--text-3)">只是參考，淨資產以盤點的實際餘額為準</span>';
+        (card ? '、刷卡 ' + money(card) : '') + '、轉存 ' + money(a.since.transfer) +
+        '<br><span style="color:var(--text-3)">' + (card ? '刷卡的錢還沒從銀行扣，會變成信用卡欠款。' : '') + '只是參考，淨資產以盤點的實際餘額為準</span>';
     } else {
       $('sinceNote').hidden = true;
     }
@@ -1327,7 +1383,7 @@ button.bud:active { background: var(--surface-2); }
       });
     };
     if ($('sDel')) $('sDel').onclick = async () => {
-      if ($('sDel').dataset.confirm !== '1') { $('sDel').dataset.confirm = '1'; $('sDel').textContent = '再按一次'; return; }
+      if (!confirmTwice($('sDel'))) return;
       await mutateAssets($('sDel'), '刪除中…', async () => {
         if (!isDemo()) await apiPost({ action: 'deleteSnapshot', date: draft.date });
         else demoAssets.snaps = demoAssets.snaps.filter(x => x.date !== draft.date);
@@ -1357,12 +1413,51 @@ button.bud:active { background: var(--surface-2); }
     if (e.target.matches('.chip')) { $('addText').value = e.target.textContent; $('addText').focus(); }
   };
 
+  // 入帳結果卡片，每張都有「復原」：新增的就刪掉，修改的就改回原本內容
+  let lastResult = null;
+  function showAddResult(data) {
+    lastResult = data;
+    const amend = data.action === 'amend_last';
+    const head = amend ? '已修改上一筆' : '已入帳 ' + data.records.length + ' 筆';
+    $('addResult').innerHTML = '<p class="msg">' + head + '</p>' + data.records.map((r, i) =>
+      '<div class="card' + (r.status !== '已完成' ? ' warn' : '') + '" id="res' + i + '">' +
+      '<div class="title"><span>' + esc(r.item) + '</span><span class="num">' + (r.amount == null ? '缺金額' : money(r.amount)) + '</span></div>' +
+      '<div class="sub">' + esc(r.category) + ' · ' + esc(r.date) + ' · ' + esc(r.payment) + '</div>' +
+      (r.status !== '已完成' ? '<div class="note">' + esc(r.status) + (r.doubt ? '：' + esc(r.doubt) : '') + '</div>' : '') +
+      (r.id ? '<button type="button" class="undo" data-undo="' + i + '">' + (amend ? '復原修改' : '復原（刪除這筆）') + '</button>' : '') +
+      '</div>').join('');
+  }
+
+  $('addResult').onclick = async e => {
+    const btn = e.target.closest('[data-undo]');
+    if (!btn || !lastResult) return;
+    const i = +btn.dataset.undo, r = lastResult.records[i];
+    btn.disabled = true; btn.textContent = '復原中…';
+    try {
+      if (lastResult.action === 'amend_last') {
+        const b4 = lastResult.before;
+        if (!isDemo()) await apiPost({ action: 'update', id: r.id, fields: b4 });
+        else Object.assign(demo.records.find(x => x.id === r.id) || {}, b4);
+      } else {
+        if (!isDemo()) await apiPost({ action: 'delete', id: r.id });
+        else demo.records = (demo.records || []).filter(x => x.id !== r.id);
+      }
+      $('res' + i).classList.add('undone');
+      btn.textContent = '已復原';
+      toast('已復原');
+      load();
+    } catch (err) {
+      btn.disabled = false; btn.textContent = '復原失敗，再試一次';
+      toast('復原失敗：' + err.message);
+    }
+  };
+
   $('addForm').onsubmit = async e => {
     e.preventDefault();
     const text = $('addText').value.trim();
     if (!text) return;
     if (isDemo()) {
-      $('addResult').innerHTML = '<p class="msg err">示範模式無法送出，請先到設定填入 Apps Script 網址與 Token。</p>';
+      $('addResult').innerHTML = '<p class="msg err">示範模式無法用 AI 解析，可以先試「不用 AI，手動輸入」，或到設定填入 Apps Script 網址與 Token。</p>';
       return;
     }
     const btn = $('addBtn');
@@ -1371,23 +1466,73 @@ button.bud:active { background: var(--surface-2); }
     try {
       const data = await apiPost({ action: 'add', text });
       if (data.action === 'ignore') {
-        $('addResult').innerHTML = '<p class="msg">沒有入帳：' + esc(data.reason) + '</p>';
+        $('addResult').innerHTML = '<p class="msg">沒有入帳：' + esc(data.reason) + '</p>' +
+          '<button type="button" class="btn ghost" id="toManual" style="margin-top:8px">其實是消費，改用手動輸入</button>';
+        $('toManual').onclick = () => openManual(text);
       } else {
-        const head = data.action === 'amend_last' ? '已修改上一筆' : '已入帳 ' + data.records.length + ' 筆';
-        $('addResult').innerHTML = '<p class="msg">' + head + '</p>' + data.records.map(r =>
-          '<div class="card' + (r.status !== '已完成' ? ' warn' : '') + '">' +
-          '<div class="title"><span>' + esc(r.item) + '</span><span class="num">' + (r.amount == null ? '缺金額' : money(r.amount)) + '</span></div>' +
-          '<div class="sub">' + esc(r.category) + ' · ' + esc(r.date) + ' · ' + esc(r.payment) + '</div>' +
-          (r.status !== '已完成' ? '<div class="note">' + esc(r.status) + (r.doubt ? '：' + esc(r.doubt) : '') + '</div>' : '') +
-          '</div>').join('');
+        showAddResult(data);
         $('addText').value = '';
         load();
       }
     } catch (err) {
-      $('addResult').innerHTML = '<p class="msg err">失敗：' + esc(err.message) + '</p>';
+      // AI 失敗（額度用完、Google 端滿載）時，直接提供手動輸入，原本的文字帶進品項
+      $('addResult').innerHTML = '<p class="msg err">AI 解析失敗：' + esc(err.message) + '</p>' +
+        '<button type="button" class="btn" id="toManual" style="margin-top:8px">改用手動輸入</button>';
+      $('toManual').onclick = () => openManual(text);
     }
     btn.disabled = false; btn.textContent = '送出';
   };
+
+  $('manualBtn').onclick = () => openManual('');
+
+  // ---------- 手動記一筆（不經過 AI） ----------
+  function openManual(prefill) {
+    const cats = state.categories;
+    const pays = state.payments;
+    let cat = cats.indexOf('餐飲') >= 0 ? '餐飲' : cats[0];
+    // 口語文字裡的阿拉伯數字當作金額，剩下的當品項
+    const m = String(prefill || '').match(/\d+/);
+    const preAmt = m ? m[0] : '';
+    const preItem = String(prefill || '').replace(/\d+\s*(元|塊)?/, '').trim();
+    openSheet(
+      '<h3 id="sheetTitle">手動記一筆</h3>' +
+      '<form id="mForm" style="margin-top:12px">' +
+      '<div class="row2"><div class="field"><label for="mAmt">金額（元）</label><input id="mAmt" type="number" inputmode="numeric" min="1" step="1" value="' + esc(preAmt) + '" required></div>' +
+      '<div class="field"><label for="mDate">日期</label><input id="mDate" type="date" value="' + state.today + '" max="' + state.today + '" required></div></div>' +
+      '<div class="field"><label for="mItem">品項</label><input id="mItem" value="' + esc(preItem) + '" placeholder="例如：雞腿飯" maxlength="50" required></div>' +
+      '<div class="field"><label>分類</label><div class="pick" id="mCats">' + cats.map(c =>
+        '<button type="button" class="chip" data-mcat="' + esc(c) + '" aria-pressed="' + (c === cat) + '">' + esc(c) + '</button>').join('') + '</div></div>' +
+      '<div class="field"><label for="mPay">付款方式</label><select id="mPay">' + pays.map(p => '<option>' + esc(p) + '</option>').join('') + '</select></div>' +
+      '<p class="msg err" id="editErr" hidden></p>' +
+      '<div class="actions"><button type="button" class="btn ghost" id="mCancel">取消</button><button class="btn" id="mSave">記下來</button></div>' +
+      '</form>');
+    $('mCats').onclick = e => {
+      const b2 = e.target.closest('[data-mcat]'); if (!b2) return;
+      cat = b2.dataset.mcat;
+      $('mCats').querySelectorAll('[data-mcat]').forEach(x => x.setAttribute('aria-pressed', String(x === b2)));
+    };
+    $('mCancel').onclick = closeSheet;
+    setTimeout(() => $(preAmt ? 'mItem' : 'mAmt').focus(), 300);
+    $('mForm').onsubmit = async e => {
+      e.preventDefault();
+      const fields = { amount: Number($('mAmt').value), date: $('mDate').value, item: $('mItem').value.trim(), category: cat, payment: $('mPay').value };
+      if (!Number.isInteger(fields.amount) || fields.amount <= 0) return showErr('金額需為正整數');
+      if (!fields.item) return showErr('請填品項');
+      if (fields.date > state.today) return showErr('日期不可晚於今天');
+      await mutate($('mSave'), '儲存中…', async () => {
+        let data;
+        if (!isDemo()) data = await apiPost({ action: 'addManual', fields });
+        else {
+          const rec = Object.assign({ id: 'demo-m' + Date.now(), created: state.today + ' 12:00:00', status: '已完成', confidence: '高', doubt: '', raw: '手動：' + fields.item, source: '網頁手動' }, fields);
+          if (demo.records) demo.records.push(rec);
+          data = { action: 'add', records: [rec] };
+        }
+        $('addText').value = '';
+        showAddResult(data);
+        toast('已記下');
+      });
+    };
+  }
 
   // ---------- 設定 ----------
   function openSettings() {
@@ -1456,6 +1601,12 @@ button.bud:active { background: var(--surface-2); }
     if (sn) return openSnapshot(sn.dataset.snap);
     const tr = e.target.closest('[data-transfer]');
     if (tr) return openTransfer(tr.dataset.transfer);
+    const bk = e.target.closest('[data-bucket]');
+    if (bk) {
+      const k = bk.dataset.bucket;
+      if (state.expanded.has(k)) state.expanded.delete(k); else state.expanded.add(k);
+      return renderBudget();
+    }
     const fs = e.target.closest('[data-fs]');
     if (fs) { state.filterStatus = fs.dataset.fs; return renderList(); }
     const fc = e.target.closest('[data-fc]');
